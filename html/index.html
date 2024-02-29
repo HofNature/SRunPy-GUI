@@ -1,0 +1,95 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <title>样本标注器</title>
+    <link type="images/png" rel="shortcut icon" href="/favicon.png">
+    <script src="./script.js"></script>
+    <link rel="stylesheet" href="./style.css">
+    <!--
+        禁止缓存
+        -->
+    <meta http-equiv="Expires" content="0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <meta http-equiv="Cache" content="no-cache">
+</head>
+
+<body>
+    <div class="main-container-v">
+        <div class="titlebar">
+            <img class="web-logo" src="logo.svg">
+            <img class="titlebar-icon" src="icon/application-menu.svg" onclick="sidebarSwitcher()" title="菜单">
+            <img class="titlebar-icon" src="icon/save.svg" onclick="saveLabel()" title="保存">
+            <img class="titlebar-icon" id="auto-save-button" src="icon/autosave.svg" onclick="autoSave()"
+                title="自动保存：开启">
+            <div class="flex-span"></div>
+            <div class="titlebar-message">
+                <span id="image-counter">1/1024</span>
+            </div>
+            <div class="flex-span"></div>
+            <img class="titlebar-icon" src="icon/arrow-left.svg" onclick="navSwitcher(-1)" title="上一页">
+            <img class="titlebar-icon" src="icon/refresh.svg" onclick="navSwitcher(0)" title="更新">
+            <img class="titlebar-icon" src="icon/arrow-right.svg" onclick="navSwitcher(1)" title="下一页">
+        </div>
+        <div class="main-container-h">
+            <div id="sidebar">
+                <div class="menubar">
+                    <span>图像列表</span>
+                    <div id="image-list"></div>
+                    <div class="menu-item" onclick="labelMode()">
+                        <div class="menu-content">
+                            <img src="icon/editor.svg">
+                            <span>标注模式</span>
+                        </div>
+                    </div>
+                    <div class="menu-item" onclick="deleteMode()">
+                        <div class="menu-content">
+                            <img src="icon/delete-three.svg">
+                            <span>删除模式</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="main-content">
+                <div id="current-img">
+                    <div id="line-hor"></div>
+                    <div id="line-ver"></div>
+                    <div id="label-canvas"></div>
+                    <div id="label-conatiner"></div>
+                    <img id="current-img-img" src="icon/image-files.svg">
+                </div>
+            </div>
+            <div id="sidebar-r">
+                <div class="tagbar">
+                    <span class="sidebar-title">标签列表</span>
+                    <div id="tag-list">
+
+                    </div>
+                    <div class="add-tag">
+                        <input id="add-tag-input">
+                        <button id="add-tag-button" onclick="addTag()">添加</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="alert-mask">
+        <div class="alert-content">
+            <img src="icon/info.svg">
+            <div id="alert-text">
+                <span>这是一个提示框</span>
+            </div>
+            <div class="alert-bar">
+                <div class="flex-span"></div>
+                <button onclick="confirmAlert()">确定</button>
+                <div class="flex-span"></div>
+                <button class="alert-cancle" onclick="closeAlert()">取消</button>
+                <div class="alert-cancle flex-span"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

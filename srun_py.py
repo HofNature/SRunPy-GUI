@@ -206,7 +206,7 @@ class Srun_Py():
         srun_portal_res = test.get(self.srun_portal_api, params=srun_portal_params, headers=self.header)
         srun_portal_res = srun_portal_res.text
         data = json.loads(srun_portal_res[srun_portal_res.find('(')+1:-1])
-        print(data)
+        return data.get('error') == 'ok'
     
     def logout(self):
         is_available, is_online, _ = self.is_connected()
@@ -225,7 +225,7 @@ class Srun_Py():
         test = requests.Session()
         user_dm_res = test.get(self.rad_user_dm_api, params=user_dm_params, headers=self.header)
         user_dm_res = user_dm_res.text
-        print(user_dm_res)
+        return user_dm_res=='logout_ok'
     
 if __name__ == '__main__':
     print('1. 判断登录状态')
