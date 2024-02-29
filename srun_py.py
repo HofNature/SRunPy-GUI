@@ -130,7 +130,6 @@ class Srun_Py():
         chkstr += token + i
         return chkstr
 
-
     def get_info(self,username,password,ip):
         info_temp = {
             "username": username,
@@ -143,19 +142,14 @@ class Srun_Py():
         i = re.sub(" ", '', i)
         return i
 
-
     def init_getip(self):
         res = requests.get(self.get_ip_api)
-        # [7:-1]是为了去掉前面的 jQuery( 和后面的 )
-        data = json.loads(res.text[7:-1])
+        data = json.loads(res.text[res.text.find('(')+1:-1])
         ip = data.get('client_ip') or data.get('online_ip')
         username = data.get('user_name')
-        # print("{0} ip:".format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))) + ip, flush=True)
         return ip, username
 
-
     def get_token(self,username,ip):
-        # print("{0} 获取token".format(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))), flush=True)
         get_challenge_params = {
             "callback": "jQuery112404953340710317169_" + str(int(time.time() * 1000)),
             "username": username,
@@ -165,38 +159,30 @@ class Srun_Py():
         test = requests.Session()
         get_challenge_res = test.get(self.get_challenge_api, params=get_challenge_params, headers=self.header)
         token = re.search('"challenge":"(.*?)"', get_challenge_res.text).group(1)
-        # print("{0} {1}".format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), get_challenge_res.text),
-        #     flush=True)
-        # print("{0}token为:".format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))) + token, flush=True)
         return token
-
 
     def is_connected(self):
         try:
             res = requests.get(self.get_ip_api)
-            # [7:-1]是为了去掉前面的 jQuery( 和后面的 )
-            data = json.loads(res.text[7:-1])
+            data = json.loads(res.text[res.text.find('(')+1:-1])
             if 'error' in data and data['error']=='not_online_error':
-                return False
+                return True, False, data
             else:
-                return True
-            # session = requests.Session()
-            # html = session.get("https://www.baidu.com", timeout=2)
+                return True, True, data
         except:
-            return False
-        return True
-
+            return False, False
 
     def do_complex_work(self,username,password,ip,token):
         i = self.get_info(username,password,ip)
         i = "{SRBX1}" + self.get_base64(get_xencode(i, token))
         hmd5 = get_md5(password, token)
         chksum = get_sha1(self.get_chksum(username,token,hmd5,ip,i))
-        # print("{0} 所有加密工作已完成".format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))), flush=True)
         return i, hmd5, chksum
 
-
     def login(self,username,password):
+        is_available, is_online, _ = self.is_connected()
+        if not is_available or is_online:
+            raise Exception('You are already online or the network is not available!')
         ip , _ = self.init_getip()
         token = self.get_token(username,ip)
         i, hmd5, chksum = self.do_complex_work(username,password,ip,token)
@@ -216,16 +202,16 @@ class Srun_Py():
             'double_stack': '0',
             '_': int(time.time() * 1000)
         }
-        # print(srun_portal_params)
         test = requests.Session()
         srun_portal_res = test.get(self.srun_portal_api, params=srun_portal_params, headers=self.header)
         srun_portal_res = srun_portal_res.text
         data = json.loads(srun_portal_res[srun_portal_res.find('(')+1:-1])
         print(data)
-        # print("{0} {1}".format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), srun_portal_res.text),
-        #     flush=True)
     
     def logout(self):
+        is_available, is_online, _ = self.is_connected()
+        if not is_available or not is_online:
+            raise Exception('You are not online or the network is not available!')
         ip , username = self.init_getip()
         t = int(time.time() * 1000);
         sign = get_sha1(str(t) + username + ip + '0' + str(t));
@@ -239,28 +225,26 @@ class Srun_Py():
         test = requests.Session()
         user_dm_res = test.get(self.rad_user_dm_api, params=user_dm_params, headers=self.header)
         user_dm_res = user_dm_res.text
-        #data = json.loads(user_dm_res[user_dm_res.find('(')+1:-1])
         print(user_dm_res)
-        # print("{0} {1}".format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), user_dm_res.text),
-        #     flush=True)
     
-
 if __name__ == '__main__':
+    print('1. 判断登录状态')
+    print('2. 登录账号')
+    print('3. 登出账号')
     srun_client = Srun_Py()
-    command = '_'
+    command = ' '
     while command != 'q':
-        command = input('>')
+        command = input('请输入命令，输入q退出:')
         if command == '1':
-            print(srun_client.is_connected())
+            is_available, is_online, online_data = srun_client.is_connected()
+            print('网络是否可用:', is_available)
+            print('是否已登录:', is_online)
         elif command == '2':
             import getpass
             username = input('username: ')
             passwd = getpass.getpass('passwd: ')
-        elif command == '3':
             srun_client.login(username, passwd)
-        elif command == '4':
+        elif command == '3':
             srun_client.logout()
-        elif command == 'q':
-            print('bye!')
         else:
-            print('unknown command!')
+            print('未知操作!')
