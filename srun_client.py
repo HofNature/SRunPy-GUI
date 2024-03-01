@@ -1,21 +1,14 @@
 #!/usr/bin/python3
 
 import os
-import clr
 import time
 import json
-import tkinter
+import webview
 import pystray
 from PIL import Image
 
-from System.Threading import Thread,ApartmentState,ThreadStart  
-from tkwebview2.tkwebview2 import WebView2, have_runtime, install_runtime
- 
-
 from srun_py import Srun_Py
 
-clr.AddReference('System.Windows.Forms')
-clr.AddReference('System.Threading')
 
 def load_config():
     appdata = os.path.expandvars(r'%APPDATA%')
@@ -41,14 +34,17 @@ def save_config(config):
 
 
 class TaskbarIcon():
-    def __init__(self, callback=None):
+    def __init__(self):
         self.menu = pystray.Menu(
-            pystray.MenuItem("打开主界面", callback, default=True),
+            pystray.MenuItem("打开主界面", self.stop, default=True),
             pystray.MenuItem("退出登陆器", self.exit)
         )
         self.icon = pystray.Icon("SRunPy", Image.open(
             r'html\icons\journey_white.png'), "校园网登陆器", self.menu)
         self.icon.run()
+
+    def stop(self):
+        self.icon.stop()
 
     def exit(self):
         self.icon.stop()
@@ -66,7 +62,19 @@ class SRunClient():
         self.srun_host = self.config['srun_host']
         self.sleeptime = self.config['sleeptime']
         self.srun = Srun_Py(self.srun_host)
+    
+    def set_config(self, username, password):
+        if self.srun_host == "gw.buaa.edu.cn":
+            self.config['username'] = username.lower()
+        else:
+            self.config['username'] = username
+        self.config['password'] = password
+        save_config(self.config)
+        self.refresh_config()
 
+    def get_config(self):
+        return self.username, self.password!=""
+    
     def login(self):
         try:
             return self.srun.login(self.username, self.password)
@@ -93,37 +101,26 @@ class MainWindow():
         if open_window:
             self.start_webview()
 
-    def start_webview(self, on_loaded=None):
-        if self.window is not None:
+    def start_webview(self):
+        if len(webview.windows) > 0:
+            print('window exists')
             return
-        
-        if not have_runtime():#没有webview2 runtime
-            install_runtime()
-        
-        def create_window():
-            def close_window():
-                self.window.destroy()
-                self.window = None
-            self.window = tkinter.Tk()
-            self.window.title("校园网登陆器")
-            self.window.geometry("800x600")
-            self.window.iconbitmap(r'html\icons\journey.ico')
-            self.window.protocol("WM_DELETE_WINDOW", close_window)
-            frame=WebView2(self.window,500,500)
-            frame.pack(side='left',padx=0,pady=0,fill='both',expand=True)
-            frame.load_url(os.path.abspath(r'html\index.html'))
-            self.window.mainloop()
-            
-        t = Thread(ThreadStart(create_window))
-        t.ApartmentState = ApartmentState.STA
-        t.Start()
-
+        localization = {
+            'global.quitConfirmation': u'确定关闭?',
+        }
+        self.window = webview.create_window(
+            "校园网登陆器", "html/index.html", width=400, height=300, resizable=False)
+        self.window.expose(self.srunpy.get_online_data,self.srunpy.login,self.srunpy.logout,self.srunpy.set_config,self.srunpy.get_config)
+        webview.start(lambda:self.window.evaluate_js('updateInfo()'), localization=localization, debug=True)
 
 
 if __name__ == "__main__":
-    config = load_config()
+    import argparse
+    parser = argparse.ArgumentParser(description='校园网登陆器')
+    parser.add_argument('--no-auto-open', action="store_true", help='不自动打开主界面')
+    args = parser.parse_args()
     srunpy = SRunClient()
-    main_window = MainWindow(srunpy)
-    icon = TaskbarIcon(lambda: main_window.start_webview())
+    main_window = MainWindow(srunpy, not args.no_auto_open)
     while True:
-        time.sleep(config['sleeptime'])
+        TaskbarIcon()
+        main_window.start_webview()

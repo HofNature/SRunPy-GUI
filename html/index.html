@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no">
-    <title>样本标注器</title>
+    <title>校园网登录器</title>
     <link type="images/png" rel="shortcut icon" href="/favicon.png">
     <script src="./script.js"></script>
     <link rel="stylesheet" href="./style.css">
@@ -17,67 +17,79 @@
 </head>
 
 <body>
-    <div class="main-container-v">
-        <div class="titlebar">
-            <img class="web-logo" src="logo.svg">
-            <img class="titlebar-icon" src="icon/application-menu.svg" onclick="sidebarSwitcher()" title="菜单">
-            <img class="titlebar-icon" src="icon/save.svg" onclick="saveLabel()" title="保存">
-            <img class="titlebar-icon" id="auto-save-button" src="icon/autosave.svg" onclick="autoSave()"
-                title="自动保存：开启">
+    <div class="main-container-h">
+        <div class="toolbar">
+            <div class="toolbar-item" id="toolbar-item-self-service" title="自服务" onclick=""></div>
+            <div class="toolbar-item" id="toolbar-item-browser" title="网页打开" onclick=""></div>
             <div class="flex-span"></div>
-            <div class="titlebar-message">
-                <span id="image-counter">1/1024</span>
-            </div>
-            <div class="flex-span"></div>
-            <img class="titlebar-icon" src="icon/arrow-left.svg" onclick="navSwitcher(-1)" title="上一页">
-            <img class="titlebar-icon" src="icon/refresh.svg" onclick="navSwitcher(0)" title="更新">
-            <img class="titlebar-icon" src="icon/arrow-right.svg" onclick="navSwitcher(1)" title="下一页">
+            <div class="toolbar-item" id="toolbar-item-exit" title="退出软件" onclick=""></div>
+            <div class="toolbar-item" id="toolbar-item-about" title="关于软件" onclick=""></div>
         </div>
-        <div class="main-container-h">
-            <div id="sidebar">
-                <div class="menubar">
-                    <span>图像列表</span>
-                    <div id="image-list"></div>
-                    <div class="menu-item" onclick="labelMode()">
-                        <div class="menu-content">
-                            <img src="icon/editor.svg">
-                            <span>标注模式</span>
-                        </div>
+        <div class="main-container-v">
+            <div class="login-pannel" data-state="offline">
+                <div class="login-info" id="login-off">
+                    <div class="flex-span"></div>
+                    <div class="input-item">
+                        <div class="input-text">用户名</div>
+                        <input type="text" id="username" placeholder="用户名">
                     </div>
-                    <div class="menu-item" onclick="deleteMode()">
-                        <div class="menu-content">
-                            <img src="icon/delete-three.svg">
-                            <span>删除模式</span>
-                        </div>
+                    <div class="flex-span"></div>
+                    <div class="input-item">
+                        <div class="input-text">密码</div>
+                        <input type="password" id="password" placeholder="密码">
                     </div>
+                    <div class="flex-span"></div>
+                </div>
+                <div class="login-info" id="login-on">
+                    <div class="flex-span"></div>
+                    <div class="info-item">
+                        <div class="info-title">用户名</div>
+                        <div class="info-text" id="username-text">用户名</div>
+                    </div>
+                    <div class="flex-span"></div>
+                    <div class="info-item">
+                        <div class="info-title">已用流量</div>
+                        <div class="info-text" id="used-flow">0</div>
+                    </div>
+                    <div class="flex-span"></div>
+                    <div class="info-item">
+                        <div class="info-title">账户余额</div>
+                        <div class="info-text" id="balance-last">0</div>
+                    </div>
+                    <div class="flex-span"></div>
+                    <div class="info-item">
+                        <div class="info-title">IP地址</div>
+                        <div class="info-text" id="ip-address">127.0.0.1</div>
+                    </div>
+                    <div class="flex-span"></div>
+                </div>
+                <div class="login-form">
+                    <button class="login-button" onclick="login()" data-loggedin=True></button>
                 </div>
             </div>
-            <div id="main-content">
-                <div id="current-img">
-                    <div id="line-hor"></div>
-                    <div id="line-ver"></div>
-                    <div id="label-canvas"></div>
-                    <div id="label-conatiner"></div>
-                    <img id="current-img-img" src="icon/image-files.svg">
+            <div class="settings-bar">
+                <div class="settings-item" onclick="">
+                    <div class="flex-span"></div>
+                    <div class="switch" data-state="selected">
+                        <div class="switch-round"></div>
+                    </div>
+                    <span class="settings-text">断线重连</span>
+                    <div class="flex-span"></div>
                 </div>
-            </div>
-            <div id="sidebar-r">
-                <div class="tagbar">
-                    <span class="sidebar-title">标签列表</span>
-                    <div id="tag-list">
-
+                <div class="settings-item" onclick="">
+                    <div class="flex-span"></div>
+                    <div class="switch" data-state="unselected">
+                        <div class="switch-round"></div>
                     </div>
-                    <div class="add-tag">
-                        <input id="add-tag-input">
-                        <button id="add-tag-button" onclick="addTag()">添加</button>
-                    </div>
+                    <span class="settings-text">开机自启</span>
+                    <div class="flex-span"></div>
                 </div>
             </div>
         </div>
     </div>
     <div id="alert-mask">
         <div class="alert-content">
-            <img src="icon/info.svg">
+            <img src="icons/info.png">
             <div id="alert-text">
                 <span>这是一个提示框</span>
             </div>
