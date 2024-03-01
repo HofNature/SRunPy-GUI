@@ -51,6 +51,11 @@ function login() {
         }
         is_online = e[1];
         if (!is_online) {
+            if (document.getElementById('username').value==''||document.getElementById('password').value=='') {
+                showAlert("用户名或密码不能为空！");
+                document.getElementsByClassName('login-button')[0].disabled = false;
+                return;
+            }
             if (user_name != document.getElementById('username').value || document.getElementById('password').value != '************') {
                 window.pywebview.api.set_config(document.getElementById('username').value, document.getElementById('password').value).then((e) => {
                     user_name = document.getElementById('username').value;

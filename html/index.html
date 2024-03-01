@@ -19,11 +19,11 @@
 <body>
     <div class="main-container-h">
         <div class="toolbar">
-            <div class="toolbar-item" id="toolbar-item-self-service" title="自服务" onclick=""></div>
-            <div class="toolbar-item" id="toolbar-item-browser" title="网页打开" onclick=""></div>
+            <div class="toolbar-item" id="toolbar-item-self-service" title="自服务" onclick="window.pywebview.api.webbrowser_open('https://zfw.buaa.edu.cn')"></div>
+            <div class="toolbar-item" id="toolbar-item-browser" title="网页打开" onclick="window.pywebview.api.webbrowser_open('https://gw.buaa.edu.cn')"></div>
             <div class="flex-span"></div>
-            <div class="toolbar-item" id="toolbar-item-exit" title="退出软件" onclick=""></div>
-            <div class="toolbar-item" id="toolbar-item-about" title="关于软件" onclick=""></div>
+            <div class="toolbar-item" id="toolbar-item-exit" title="退出软件" onclick="window.pywebview.api.exit_application()"></div>
+            <div class="toolbar-item" id="toolbar-item-about" title="关于软件" onclick="showAlert('深澜网关第三方客户端')"></div>
         </div>
         <div class="main-container-v">
             <div class="login-pannel" data-state="offline">

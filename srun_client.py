@@ -1,18 +1,28 @@
 #!/usr/bin/python3
 
 import os
-import time
 import json
+import pickle
 import webview
 import pystray
+import webbrowser
+from Crypto.Cipher import AES
+from binascii import b2a_hex, a2b_hex
 from PIL import Image
 
 from srun_py import Srun_Py
 
+def exit_application():
+    os._exit(0)
+
+def webbrowser_open(url):
+    webbrowser.open(url)
+
 
 def load_config():
+    aes=MyAES(key="dj26Dh47useoUI28")
     appdata = os.path.expandvars(r'%APPDATA%')
-    config_path = os.path.join(appdata, 'SRunPy', 'config.json')
+    config_path = os.path.join(appdata, 'SRunPy', 'config.bin')
     if not os.path.exists(config_path):
         os.makedirs(os.path.dirname(config_path), exist_ok=True)
         config = {
@@ -21,16 +31,45 @@ def load_config():
             "srun_host": "gw.buaa.edu.cn",
             "sleeptime": 10
         }
-        json.dump(config, open(config_path, 'w'), indent=4, ensure_ascii=True)
+        pickle.dump(config, open(config_path, 'wb'))
     else:
-        config = json.load(open(config_path, 'r'))
+        config = pickle.load(open(config_path, 'rb'))
+        if config['password'] != "":
+            config['password'] = aes.decode_aes(config['password'])
     return config
 
 
 def save_config(config):
+    aes=MyAES(key="dj26Dh47useoUI28")
     appdata = os.path.expandvars(r'%APPDATA%')
-    config_path = os.path.join(appdata, 'SRunPy', 'config.json')
-    json.dump(config, open(config_path, 'w'), indent=4, ensure_ascii=True)
+    config_path = os.path.join(appdata, 'SRunPy', 'config.bin')
+    config['password'] = aes.encode_aes(config['password'])
+    pickle.dump(config, open(config_path, 'wb'))
+    config['password'] = aes.decode_aes(config['password'])
+
+class MyAES:
+    def __init__(self, key):
+        self.key = key.encode()
+
+    def __add_to_16(self, text):
+        """ 如果string不足16位则用空格补齐16位 """
+        if len(text.encode()) % 16:
+            add = 16 - (len(text.encode()) % 16)
+        else:
+            add = 0
+        text += ("\0" * add)
+        return text.encode()
+
+    def encode_aes(self, text):
+        cryptos = AES.new(key=self.key, mode=AES.MODE_ECB)
+        cipher_text = cryptos.encrypt(self.__add_to_16(text))
+        # 由于AES加密后的字符串不一定是ascii字符集，所以转为16进制字符串
+        return b2a_hex(cipher_text)
+
+    def decode_aes(self, text):
+        cryptos = AES.new(key=self.key, mode=AES.MODE_ECB)
+        plain_text = cryptos.decrypt(a2b_hex(text))
+        return bytes.decode(plain_text).rstrip("\0")
 
 
 class TaskbarIcon():
@@ -110,7 +149,7 @@ class MainWindow():
         }
         self.window = webview.create_window(
             "校园网登陆器", "html/index.html", width=400, height=300, resizable=False)
-        self.window.expose(self.srunpy.get_online_data,self.srunpy.login,self.srunpy.logout,self.srunpy.set_config,self.srunpy.get_config)
+        self.window.expose(self.srunpy.get_online_data,self.srunpy.login,self.srunpy.logout,self.srunpy.set_config,self.srunpy.get_config,webbrowser_open,exit_application)
         webview.start(lambda:self.window.evaluate_js('updateInfo()'), localization=localization, debug=True)
 
 
