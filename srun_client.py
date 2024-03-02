@@ -20,7 +20,7 @@ from srun_py import Srun_Py
 
 resource_path=os.path.dirname(os.path.abspath(__file__))
 application_path = os.path.abspath(sys.argv[0])
-start_lnk_path = os.path.join(os.path.expandvars(r'%APPDATA%'), 'Microsoft\Windows\Start Menu\Programs\Startup', '校园网登陆器.lnk')
+start_lnk_path = os.path.join(os.path.expandvars(r'%APPDATA%'), r'Microsoft\Windows\Start Menu\Programs\Startup', '校园网登陆器.lnk')
 
 def exit_application():
     os._exit(0)
