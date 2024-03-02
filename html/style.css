@@ -169,7 +169,9 @@ div#toolbar-item-self-service {
 div#toolbar-item-browser {
     background-image: url(icons/planet.png);
 }
-
+div#toolbar-item-refresh {
+    background-image: url(icons/refresh.png);
+}
 div#toolbar-item-exit {
     background-image: url(icons/close-one.png);
 }

@@ -21,6 +21,7 @@
         <div class="toolbar">
             <div class="toolbar-item" id="toolbar-item-self-service" title="自服务" onclick="window.pywebview.api.webbrowser_open('https://zfw.buaa.edu.cn')"></div>
             <div class="toolbar-item" id="toolbar-item-browser" title="网页打开" onclick="window.pywebview.api.webbrowser_open('https://gw.buaa.edu.cn')"></div>
+            <div class="toolbar-item" id="toolbar-item-refresh" title="刷新" onclick="updateInfo()"></div>
             <div class="flex-span"></div>
             <div class="toolbar-item" id="toolbar-item-exit" title="退出软件" onclick="window.pywebview.api.exit_application()"></div>
             <div class="toolbar-item" id="toolbar-item-about" title="关于软件" onclick="showAlert('深澜网关第三方客户端')"></div>
@@ -70,7 +71,7 @@
             <div class="settings-bar">
                 <div class="settings-item" onclick="">
                     <div class="flex-span"></div>
-                    <div class="switch" data-state="selected">
+                    <div class="switch" id="auto-login" data-state="selected" onclick="set_auto_login()">
                         <div class="switch-round"></div>
                     </div>
                     <span class="settings-text">断线重连</span>
@@ -78,7 +79,7 @@
                 </div>
                 <div class="settings-item" onclick="">
                     <div class="flex-span"></div>
-                    <div class="switch" data-state="unselected">
+                    <div class="switch" id="auto-start" data-state="unselected" onclick="set_auto_start()">
                         <div class="switch-round"></div>
                     </div>
                     <span class="settings-text">开机自启</span>

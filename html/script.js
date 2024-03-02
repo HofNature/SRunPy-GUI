@@ -15,7 +15,6 @@ function updateInfo() {
         is_online = e[1];
         if (!is_online) {
             document.getElementsByClassName('login-pannel')[0].setAttribute('data-state', 'offline');
-            load_data();
         }
         else {
             document.getElementsByClassName('login-pannel')[0].setAttribute('data-state', 'online');
@@ -26,6 +25,7 @@ function updateInfo() {
             document.getElementById('used-flow').innerText = (online_data.sum_bytes / 1024 / 1024).toFixed(2) + 'MB';
             document.getElementById('balance-last').innerText = online_data.user_balance + '元';
         }
+        load_data();
     })
 }
 function load_data() {
@@ -38,7 +38,39 @@ function load_data() {
         else {
             document.getElementById('password').value = '';
         }
+        if (e[2]){
+            document.getElementById('auto-login').setAttribute('data-state',"selected");
+        }
+        else {
+            document.getElementById('auto-login').setAttribute('data-state',"unselected");
+        }
+        if (e[3]){
+            document.getElementById('auto-start').setAttribute('data-state',"selected");
+        }
+        else {
+            document.getElementById('auto-start').setAttribute('data-state',"unselected");
+        }
     });
+}
+function set_auto_login() {
+    if (document.getElementById('auto-login').getAttribute('data-state') == 'selected') {
+        document.getElementById('auto-login').setAttribute('data-state', 'unselected');
+        window.pywebview.api.set_auto_login(false);
+    }
+    else {
+        document.getElementById('auto-login').setAttribute('data-state', 'selected');
+        window.pywebview.api.set_auto_login(true);
+    }
+}
+function set_auto_start() {
+    if (document.getElementById('auto-start').getAttribute('data-state') == 'selected') {
+        document.getElementById('auto-start').setAttribute('data-state', 'unselected');
+        window.pywebview.api.set_start_with_windows(false);
+    }
+    else {
+        document.getElementById('auto-start').setAttribute('data-state', 'selected');
+        window.pywebview.api.set_start_with_windows(true);
+    }
 }
 function login() {
     document.getElementsByClassName('login-button')[0].disabled = true;
@@ -50,27 +82,27 @@ function login() {
             return;
         }
         is_online = e[1];
+        if (is_online != (document.getElementsByClassName('login-pannel')[0].getAttribute('data-state')=='online')){
+            updateInfo();
+            document.getElementsByClassName('login-button')[0].disabled = false;
+            return;
+        }
         if (!is_online) {
             if (document.getElementById('username').value==''||document.getElementById('password').value=='') {
                 showAlert("用户名或密码不能为空！");
                 document.getElementsByClassName('login-button')[0].disabled = false;
                 return;
             }
-            if (user_name != document.getElementById('username').value || document.getElementById('password').value != '************') {
-                window.pywebview.api.set_config(document.getElementById('username').value, document.getElementById('password').value).then((e) => {
-                    user_name = document.getElementById('username').value;
-                    window.pywebview.api.login().then((e) => {
-                        if (e) {
-                            updateInfo();
-                        }
-                        else {
-                            showAlert("登录失败！");
-                        }
-                        document.getElementsByClassName('login-button')[0].disabled = false;
-                    });
-                });
+            if (user_name != document.getElementById('username').value){
+                user_name = document.getElementById('username').value;
+            }
+            if (document.getElementById('password').value != '************'){
+                password = document.getElementById('password').value;
             }
             else {
+                password = '';
+            }
+            window.pywebview.api.set_config(user_name,password).then((e) => {
                 window.pywebview.api.login().then((e) => {
                     if (e) {
                         updateInfo();
@@ -80,12 +112,14 @@ function login() {
                     }
                     document.getElementsByClassName('login-button')[0].disabled = false;
                 });
-            }
+            });
         }
         else {
             window.pywebview.api.logout().then((e) => {
                 if (e) {
-                    updateInfo();
+                    window.pywebview.api.set_auto_login(false).then((e) => {
+                        updateInfo();
+                    });
                 }
                 else {
                     showAlert("注销失败！");
