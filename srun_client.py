@@ -20,6 +20,7 @@ from srun_py import Srun_Py
 
 resource_path=os.path.dirname(os.path.abspath(__file__))
 application_path = os.path.abspath(sys.argv[0])
+python_path = os.path.abspath(sys.executable)
 start_lnk_path = os.path.join(os.path.expandvars(r'%APPDATA%'), r'Microsoft\Windows\Start Menu\Programs\Startup', '校园网登陆器.lnk')
 
 def exit_application():
@@ -69,9 +70,15 @@ def create_lnk():
     delete_lnk()
     shell = client.Dispatch('Wscript.Shell')
     link = shell.CreateShortCut(start_lnk_path)
-    link.TargetPath = application_path
-    link.Arguments = ' --no-auto-open'
-    link.IconLocation = application_path+',0'
+    if python_path == application_path:
+        link.TargetPath = application_path
+        link.Arguments = ' --no-auto-open'
+        link.IconLocation = application_path+',0'
+    else:
+        link.TargetPath = python_path
+        link.Arguments = '"'+application_path+'" --no-auto-open'
+        link.IconLocation = os.path.join(resource_path,'html/icons/journey.ico')+',0'
+    
     link.save()
 
 class MyAES:
