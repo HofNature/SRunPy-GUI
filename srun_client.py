@@ -175,10 +175,18 @@ class SRunClient():
     
     def auto_login_deamon(self):
         while self.auto_login:
-            is_available, is_online, _ =self.srun.is_connected()
+            try:
+                is_available, is_online, _ =self.srun.is_connected()
+            except:
+                is_available, is_online = False, False
             if is_available and not is_online:
-                if self.login():
-                    sysToaster.show_toast("校园网登陆器", "自动登陆成功", duration=5,threaded=True)
+                try:
+                    if self.login():
+                        sysToaster.show_toast("校园网登陆器", "自动登陆成功", duration=5,threaded=True)
+                    else:
+                        sysToaster.show_toast("校园网登陆器", "自动登陆失败", duration=5,threaded=True)
+                except:
+                    sysToaster.show_toast("校园网登陆器", "自动登陆失败", duration=5,threaded=True)
             if self.auto_login:
                 time.sleep(self.sleeptime)
             else:
