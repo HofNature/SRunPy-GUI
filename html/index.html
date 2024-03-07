@@ -24,7 +24,7 @@
             <div class="toolbar-item" id="toolbar-item-refresh" title="刷新" onclick="updateInfo()"></div>
             <div class="flex-span"></div>
             <div class="toolbar-item" id="toolbar-item-exit" title="退出软件" onclick="window.pywebview.api.exit_application()"></div>
-            <div class="toolbar-item" id="toolbar-item-about" title="关于软件" onclick="showAlert('深澜网关第三方客户端')"></div>
+            <div class="toolbar-item" id="toolbar-item-about" title="关于软件" onclick="do_Update()"></div>
         </div>
         <div class="main-container-v">
             <div class="login-pannel" data-state="offline">
@@ -96,7 +96,7 @@
             </div>
             <div class="alert-bar">
                 <div class="flex-span"></div>
-                <button onclick="confirmAlert()">确定</button>
+                <button id="confirm-alert-button">确定</button>
                 <div class="flex-span"></div>
                 <button class="alert-cancle" onclick="closeAlert()">取消</button>
                 <div class="alert-cancle flex-span"></div>

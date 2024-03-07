@@ -2,6 +2,7 @@
 //     updateInfo();
 // });
 let user_name = '';
+let hasUpdate = false;
 
 function updateInfo() {
     window.pywebview.api.get_online_data().then((e) => {
@@ -38,19 +39,33 @@ function load_data() {
         else {
             document.getElementById('password').value = '';
         }
-        if (e[2]){
-            document.getElementById('auto-login').setAttribute('data-state',"selected");
+        if (e[2]) {
+            document.getElementById('auto-login').setAttribute('data-state', "selected");
         }
         else {
-            document.getElementById('auto-login').setAttribute('data-state',"unselected");
+            document.getElementById('auto-login').setAttribute('data-state', "unselected");
         }
-        if (e[3]){
-            document.getElementById('auto-start').setAttribute('data-state',"selected");
+        if (e[3]) {
+            document.getElementById('auto-start').setAttribute('data-state', "selected");
         }
         else {
-            document.getElementById('auto-start').setAttribute('data-state',"unselected");
+            document.getElementById('auto-start').setAttribute('data-state', "unselected");
+        }
+        hasUpdate = e[4];
+        if (e[4] && !e[5]){
+            do_Update();
+            window.pywebview.api.do_update(false);
         }
     });
+}
+
+function do_Update() {
+    if (hasUpdate) {
+        showConfirmAlert('检查到更新，立即下载吗？', ()=>{window.pywebview.api.do_update(true)});
+    }
+    else{
+        showAlert('深澜网关第三方客户端')
+    }
 }
 function set_auto_login() {
     if (document.getElementById('auto-login').getAttribute('data-state') == 'selected') {
@@ -82,27 +97,27 @@ function login() {
             return;
         }
         is_online = e[1];
-        if (is_online != (document.getElementsByClassName('login-pannel')[0].getAttribute('data-state')=='online')){
+        if (is_online != (document.getElementsByClassName('login-pannel')[0].getAttribute('data-state') == 'online')) {
             updateInfo();
             document.getElementsByClassName('login-button')[0].disabled = false;
             return;
         }
         if (!is_online) {
-            if (document.getElementById('username').value==''||document.getElementById('password').value=='') {
+            if (document.getElementById('username').value == '' || document.getElementById('password').value == '') {
                 showAlert("用户名或密码不能为空！");
                 document.getElementsByClassName('login-button')[0].disabled = false;
                 return;
             }
-            if (user_name != document.getElementById('username').value){
+            if (user_name != document.getElementById('username').value) {
                 user_name = document.getElementById('username').value;
             }
-            if (document.getElementById('password').value != '************'){
+            if (document.getElementById('password').value != '************') {
                 password = document.getElementById('password').value;
             }
             else {
                 password = '';
             }
-            window.pywebview.api.set_config(user_name,password).then((e) => {
+            window.pywebview.api.set_config(user_name, password).then((e) => {
                 window.pywebview.api.login().then((e) => {
                     if (e) {
                         updateInfo();
@@ -135,15 +150,19 @@ function showAlert(text) {
 }
 
 function showConfirmAlert(text, callback) {
-    confirmAlertCallback = callback;
     let ele = document.getElementsByClassName("alert-cancle");
     if (callback) {
         ele[0].style.display = "block";
         ele[1].style.display = "block";
+        document.getElementById("confirm-alert-button").onclick = ()=>{
+            closeAlert();
+            callback();
+        };
     }
     else {
         ele[0].style.display = "none";
         ele[1].style.display = "none";
+        document.getElementById("confirm-alert-button").onclick = closeAlert;
     }
     let mask = document.getElementById("alert-mask");
     document.getElementById("alert-text").children[0].innerText = text;
@@ -164,11 +183,4 @@ function closeAlert() {
             }
         }, 500);
     }
-}
-
-function confirmAlert() {
-    if (confirmAlertCallback) {
-        confirmAlertCallback();
-    }
-    closeAlert();
 }
