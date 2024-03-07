@@ -52,7 +52,7 @@ function load_data() {
             document.getElementById('auto-start').setAttribute('data-state', "unselected");
         }
         hasUpdate = e[4];
-        if (e[4] && !e[5]){
+        if (e[4] && !e[5]) {
             do_Update();
             window.pywebview.api.do_update(false);
         }
@@ -61,9 +61,9 @@ function load_data() {
 
 function do_Update() {
     if (hasUpdate) {
-        showConfirmAlert('检查到更新，立即下载吗？', ()=>{window.pywebview.api.do_update(true)});
+        showConfirmAlert('检查到更新，立即下载吗？', () => { window.pywebview.api.do_update(true) });
     }
-    else{
+    else {
         showAlert('深澜网关第三方客户端')
     }
 }
@@ -74,7 +74,21 @@ function set_auto_login() {
     }
     else {
         document.getElementById('auto-login').setAttribute('data-state', 'selected');
-        window.pywebview.api.set_auto_login(true);
+        window.pywebview.api.get_online_data().then((e) => {
+            is_online = e[1];
+            if (is_online){
+                window.pywebview.api.set_auto_login(true).then((e) => {
+                    if (!e) {
+                        showAlert("请至少用本工具登录一次！");
+                        document.getElementById('auto-login').setAttribute('data-state', 'unselected');
+                    }
+                });
+            }
+            else{
+                showAlert("仅限登录状态下启用！");
+                document.getElementById('auto-login').setAttribute('data-state', 'unselected');
+            }
+        });
     }
 }
 function set_auto_start() {
@@ -120,7 +134,14 @@ function login() {
             window.pywebview.api.set_config(user_name, password).then((e) => {
                 window.pywebview.api.login().then((e) => {
                     if (e) {
-                        updateInfo();
+                        if (document.getElementById('auto-start').getAttribute('data-state') == 'selected') {
+                            window.pywebview.api.set_start_with_windows(true).then(() => {
+                                updateInfo();
+                            });
+                        }
+                        else {
+                            updateInfo();
+                        }
                     }
                     else {
                         showAlert("登录失败！");
@@ -154,7 +175,7 @@ function showConfirmAlert(text, callback) {
     if (callback) {
         ele[0].style.display = "block";
         ele[1].style.display = "block";
-        document.getElementById("confirm-alert-button").onclick = ()=>{
+        document.getElementById("confirm-alert-button").onclick = () => {
             closeAlert();
             callback();
         };

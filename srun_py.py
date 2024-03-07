@@ -87,14 +87,18 @@ def get_xencode(msg, key):
     return lencode(pwd, False)
 
 class Srun_Py():
-    def __init__(self, srun_host='gw.buaa.edu.cn'):
+    def __init__(self, srun_host='gw.buaa.edu.cn',host_ip='10.200.21.4'):
         self.srun_host = srun_host
         self.init_url = "https://{}".format(srun_host)
-        self.get_ip_api = 'http://{}/cgi-bin/rad_user_info?callback=JQuery'.format(srun_host)
+        self.get_ip_api = 'https://{}/cgi-bin/rad_user_info?callback=JQuery'.format(srun_host)
+        self.get_ip_api_ip= 'https://{}/cgi-bin/rad_user_info?callback=JQuery'.format(host_ip)
         self.get_challenge_api = "https://{}/cgi-bin/get_challenge".format(srun_host)
+        self.get_challenge_api_ip = "https://{}/cgi-bin/get_challenge".format(host_ip)
         self.srun_portal_api = "https://{}/cgi-bin/srun_portal".format(srun_host)
+        self.srun_portal_api_ip = "https://{}/cgi-bin/srun_portal".format(host_ip)
         self.rad_user_dm_api = "https://{}/cgi-bin/rad_user_dm".format(srun_host)
-        self.header = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0'}
+        self.rad_user_dm_api_ip = "https://{}/cgi-bin/rad_user_dm".format(host_ip)
+        self.header = {'Host':srun_host,'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0'}
         self.n = '200'
         self.type = '1'
         self.ac_id = '1'
@@ -143,7 +147,10 @@ class Srun_Py():
         return i
 
     def init_getip(self):
-        res = requests.get(self.get_ip_api)
+        try:
+            res = requests.get(self.get_ip_api)
+        except:
+            res = requests.get(self.get_ip_api_ip,headers=self.header,verify=False)
         data = json.loads(res.text[res.text.find('(')+1:-1])
         ip = data.get('client_ip') or data.get('online_ip')
         username = data.get('user_name')
@@ -157,13 +164,19 @@ class Srun_Py():
             "_": int(time.time() * 1000),
         }
         test = requests.Session()
-        get_challenge_res = test.get(self.get_challenge_api, params=get_challenge_params, headers=self.header)
+        try:
+            get_challenge_res = test.get(self.get_challenge_api, params=get_challenge_params, headers=self.header)
+        except:
+            get_challenge_res = test.get(self.get_challenge_api_ip, params=get_challenge_params, headers=self.header,verify=False)
         token = re.search('"challenge":"(.*?)"', get_challenge_res.text).group(1)
         return token
 
     def is_connected(self):
         try:
-            res = requests.get(self.get_ip_api)
+            try:
+                res = requests.get(self.get_ip_api)
+            except:
+                res = requests.get(self.get_ip_api_ip,headers=self.header,verify=False)
             data = json.loads(res.text[res.text.find('(')+1:-1])
             if 'error' in data and data['error']=='not_online_error':
                 return True, False, data
@@ -203,7 +216,10 @@ class Srun_Py():
             '_': int(time.time() * 1000)
         }
         test = requests.Session()
-        srun_portal_res = test.get(self.srun_portal_api, params=srun_portal_params, headers=self.header)
+        try:
+            srun_portal_res = test.get(self.srun_portal_api, params=srun_portal_params, headers=self.header)
+        except:
+            srun_portal_res = test.get(self.srun_portal_api_ip, params=srun_portal_params, headers=self.header,verify=False)
         srun_portal_res = srun_portal_res.text
         data = json.loads(srun_portal_res[srun_portal_res.find('(')+1:-1])
         return data.get('error') == 'ok'
@@ -223,7 +239,10 @@ class Srun_Py():
             'sign': sign
         }
         test = requests.Session()
-        user_dm_res = test.get(self.rad_user_dm_api, params=user_dm_params, headers=self.header)
+        try:
+            user_dm_res = test.get(self.rad_user_dm_api, params=user_dm_params, headers=self.header)
+        except:
+            user_dm_res = test.get(self.rad_user_dm_api_ip, params=user_dm_params, headers=self.header,verify=False)
         user_dm_res = user_dm_res.text
         return user_dm_res=='logout_ok'
     

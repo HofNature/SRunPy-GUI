@@ -19,14 +19,15 @@ import win32com.client as client
 from win10toast import ToastNotifier
 
 sysToaster = ToastNotifier()
-PROGRAM_VERSION = (1, 0, 2, 0)
+PROGRAM_VERSION = (1, 0, 3, 0)
 
 resource_path = os.path.dirname(os.path.abspath(__file__))
 application_path = os.path.abspath(sys.argv[0])
 python_path = os.path.abspath(sys.executable)
 start_lnk_path = os.path.join(os.path.expandvars(
     r'%APPDATA%'), r'Microsoft\Windows\Start Menu\Programs\Startup', '校园网登陆器.lnk')
-
+appdata_path = os.path.expandvars(r'%APPDATA%')
+config_path = os.path.join(appdata_path, 'SRunPy', 'config.bin')
 
 def exit_application():
     os._exit(0)
@@ -64,14 +65,14 @@ def get_Update():
 
 def load_config():
     aes = MyAES(key="dj26Dh47useoUI28")
-    appdata = os.path.expandvars(r'%APPDATA%')
-    config_path = os.path.join(appdata, 'SRunPy', 'config.bin')
     if not os.path.exists(config_path):
         os.makedirs(os.path.dirname(config_path), exist_ok=True)
         config = {
             "username": "",
             "password": "",
+            "pass_correct": False,
             "srun_host": "gw.buaa.edu.cn",
+            "host_ip": "10.200.21.4",
             "sleeptime": 5,
             "auto_login": False,
             "start_with_windows": False
@@ -81,13 +82,15 @@ def load_config():
         config = pickle.load(open(config_path, 'rb'))
         if config['password'] != "":
             config['password'] = aes.decode_aes(config['password'])
+        if not config.get('pass_correct'):
+            config['auto_login'] = False
     return config
 
+def reset_config():
+    os.remove(config_path)
 
 def save_config(config):
     aes = MyAES(key="dj26Dh47useoUI28")
-    appdata = os.path.expandvars(r'%APPDATA%')
-    config_path = os.path.join(appdata, 'SRunPy', 'config.bin')
     config['password'] = aes.encode_aes(config['password'])
     pickle.dump(config, open(config_path, 'wb'))
     config['password'] = aes.decode_aes(config['password'])
@@ -180,14 +183,22 @@ class SRunClient():
         self.refresh_config()
 
     def refresh_config(self):
-        self.config = load_config()
-        self.username = self.config['username']
-        self.password = self.config['password']
-        self.srun_host = self.config['srun_host']
-        self.sleeptime = self.config['sleeptime']
-        self.auto_login = self.config['auto_login']
-        self.start_with_windows = self.config['start_with_windows']
-        self.srun = Srun_Py(self.srun_host)
+        try:
+            self.config = load_config()
+            self.username = self.config['username']
+            self.password = self.config['password']
+            self.pass_correct = self.config['pass_correct']
+            self.srun_host = self.config['srun_host']
+            self.host_ip = self.config['host_ip']
+            self.sleeptime = self.config['sleeptime']
+            self.auto_login = self.config['auto_login']
+            self.start_with_windows = self.config['start_with_windows']
+        except:
+            reset_config()
+            self.refresh_config()
+            return
+
+        self.srun = Srun_Py(self.srun_host, self.host_ip)
         if self.start_with_windows:
             create_lnk()
         else:
@@ -199,13 +210,15 @@ class SRunClient():
                 self.auto_login_thread.start()
 
     def set_config(self, username, password):
-        if username != "":
+        if username != "" and username != self.config['username']:
             if self.srun_host == "gw.buaa.edu.cn":
                 self.config['username'] = username.lower()
             else:
                 self.config['username'] = username
-        if password != "":
+            self.pass_correct=False
+        if password != "" and password != self.config['password']:
             self.config['password'] = password
+            self.pass_correct=False
         save_config(self.config)
         self.refresh_config()
 
@@ -215,9 +228,13 @@ class SRunClient():
         self.refresh_config()
 
     def set_auto_login(self, auto_login):
-        self.config['auto_login'] = auto_login
-        save_config(self.config)
-        self.refresh_config()
+        if auto_login and not self.auto_login and not self.pass_correct:
+            return False
+        else:
+            self.config['auto_login'] = auto_login
+            save_config(self.config)
+            self.refresh_config()
+            return True
 
     def get_config(self):
         return self.username, self.password != "", self.auto_login, self.start_with_windows, self.isUptoDate, self.hasDoneUpdate
@@ -259,9 +276,14 @@ class SRunClient():
 
     def login(self):
         try:
-            return self.srun.login(self.username, self.password)
+            success = self.srun.login(self.username, self.password)
         except:
-            return False
+            success = False
+        if success and not self.pass_correct:
+            self.config['pass_correct'] = True
+            save_config(self.config)
+            self.refresh_config()
+        return success
 
     def logout(self):
         try:
