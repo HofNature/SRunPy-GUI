@@ -19,7 +19,7 @@ import win32com.client as client
 from win10toast import ToastNotifier
 
 sysToaster = ToastNotifier()
-PROGRAM_VERSION = (1, 0, 1, 0)
+PROGRAM_VERSION = (1, 0, 2, 0)
 
 resource_path = os.path.dirname(os.path.abspath(__file__))
 application_path = os.path.abspath(sys.argv[0])
@@ -228,6 +228,7 @@ class SRunClient():
         self.hasDoneUpdate = True
 
     def auto_login_deamon(self):
+        login_failed_count = 0
         while self.auto_login:
             try:
                 is_available, is_online, _ = self.srun.is_connected()
@@ -238,14 +239,21 @@ class SRunClient():
                     if self.login():
                         sysToaster.show_toast(
                             "校园网登陆器", "自动登陆成功", duration=5, threaded=True)
+                        login_failed_count = 0
                     else:
                         sysToaster.show_toast(
                             "校园网登陆器", "自动登陆失败", duration=5, threaded=True)
+                        login_failed_count += 1
                 except:
                     sysToaster.show_toast(
                         "校园网登陆器", "自动登陆失败", duration=5, threaded=True)
+                    login_failed_count += 1
             if self.auto_login:
                 time.sleep(self.sleeptime)
+                if login_failed_count > 3:
+                    sysToaster.show_toast(
+                        "校园网登陆器", "自动登陆失败次数过多，请检查账号密码", duration=180, threaded=True)
+                    time.sleep(60*(login_failed_count-3))
             else:
                 break
 
