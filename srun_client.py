@@ -55,8 +55,8 @@ def get_Update():
             "https://api.github.com/repos/HofNature/SRunPy-GUI/releases/latest")
         if response.status_code == 200:
             data = response.json()
-            name = data['name']
-            if name > '.'.join(map(str, PROGRAM_VERSION)):
+            tag_name = data['tag_name']
+            if tag_name[1:] > '.'.join(map(str, PROGRAM_VERSION)):
                 return True
         return False
     except:
