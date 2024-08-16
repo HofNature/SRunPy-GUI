@@ -112,7 +112,7 @@ def create_lnk():
     delete_lnk()
     shell = client.Dispatch('Wscript.Shell')
     link = shell.CreateShortCut(start_lnk_path)
-    if python_path == application_path:
+    if python_path == application_path or not os.path.exists(python_path):
         link.TargetPath = application_path
         link.Arguments = ' --no-auto-open'
         link.IconLocation = application_path+',0'
