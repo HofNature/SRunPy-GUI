@@ -1,10 +1,10 @@
+@charset "UTF-8";
+
 @font-face {
     font-family: "MiSans";
     src:
         url("/MiSans-Medium.ttf") format("ttf");
 }
-
-@charset "UTF-8";
 
 * {
     margin: 0;
@@ -212,13 +212,23 @@ div#toolbar-item-about {
     transition: 0.5s;
 }
 
+.switch[data-state="selected"] .switch-round {
+    left: 41;
+}
+.switch[data-state="selected"]:hover .switch-round {
+    left: 40;
+}
+
+.switch:hover .switch-round {
+    background: #f8f8f8;
+    height: 18px;
+    width: 18px;
+    border-radius: 9px;
+}
+
 .switch[data-state="selected"] {
     background: #4e4;
     box-shadow: inset 0px 0px 5px 1px #6664;
-}
-
-.switch[data-state="selected"] .switch-round {
-    left: 41;
 }
 
 div#login-on {

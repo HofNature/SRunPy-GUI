@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from srun_py import Srun_Py
+
 import os
 import sys
 import time
@@ -10,6 +11,7 @@ import pystray
 import requests
 import threading
 import webbrowser
+import subprocess
 from Crypto.Cipher import AES
 from binascii import b2a_hex, a2b_hex
 from PIL import Image
@@ -19,8 +21,9 @@ import win32com.client as client
 from win10toast import ToastNotifier
 
 sysToaster = ToastNotifier()
-PROGRAM_VERSION = (1, 0, 3, 0)
+PROGRAM_VERSION = (1, 0, 4, 0)
 
+current_pid = os.getpid()
 resource_path = os.path.dirname(os.path.abspath(__file__))
 application_path = os.path.abspath(sys.argv[0])
 python_path = os.path.abspath(sys.executable)
@@ -181,6 +184,10 @@ class SRunClient():
             self.isUptoDate = get_Update()
         threading.Thread(target=check_update).start()
         self.refresh_config()
+        if 'process_id' in self.config and self.config['process_id'] != current_pid:
+            subprocess.call("start /B taskkill /f /pid "+str(self.config['process_id']),shell=True)
+        self.config["process_id"] = current_pid
+        save_config(self.config)
 
     def refresh_config(self):
         try:
