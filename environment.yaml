@@ -45,4 +45,5 @@ dependencies:
       - typing-extensions==4.10.0
       - urllib3==2.2.1
       - win10toast==0.9
+      - nuitka
 prefix: C:\miniconda3\envs\SRunPy

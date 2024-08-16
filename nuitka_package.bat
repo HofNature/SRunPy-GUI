@@ -1,0 +1,1 @@
+python -m nuitka --lto=no --onefile --standalone .\srun_client.py --include-data-dir=./html=./html --windows-console-mode=attach --windows-icon-from-ico=./logo.ico --file-version="1.0.4" --product-version="1.0.4.0" --company-name="HopeOFNature" --product-name="SRun Authenticator" --file-description="SRun Authenticator" 

@@ -2,3 +2,8 @@ build/*
 dist/*
 package_env/*   
 __pycache__/*
+nuitka-crash-report.xml
+srun_client.dist/*
+srun_client.build/*
+srun_client.onefile-build/*
+srun_client.exe
