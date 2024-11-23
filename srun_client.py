@@ -270,7 +270,7 @@ class SRunClient():
             return True
 
     def get_config(self):
-        return self.username, self.password != "", self.auto_login, self.start_with_windows, self.isUptoDate, self.hasDoneUpdate, self.srun_host if self.srun_host != "" else self.host_ip
+        return self.username, self.password != "", self.auto_login, self.start_with_windows, self.isUptoDate, self.hasDoneUpdate, self.srun_host if self.srun_host != "" else self.host_ip, self.self_service
     
     def do_update(self,open=False):
         if open:
@@ -289,7 +289,7 @@ class SRunClient():
         else:
             webbrowser.open(f"http://{self.self_service}")
 
-    def set_srun_host(self, srun_host):
+    def set_srun_host(self, srun_host, self_service):
         # 判断地址是域名还是ip
         domain, ip = is_domain(srun_host)
         if domain:
@@ -300,6 +300,7 @@ class SRunClient():
             self.config['host_ip'] = srun_host
         else:
             return False
+        self.config['self_service'] = self_service
         save_config(self.config)
         self.refresh_config()
         del self.srun

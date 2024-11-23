@@ -2,7 +2,8 @@
 //     updateInfo();
 // });
 let user_name = '';
-let srun_host = ''
+let srun_host = '';
+let srun_self = '';
 let hasUpdate = false;
 
 function updateInfo() {
@@ -58,6 +59,7 @@ function load_data() {
             window.pywebview.api.do_update(false);
         }
         srun_host=e[6];
+        srun_self=e[7];
     });
 }
 
@@ -66,7 +68,7 @@ function do_Update() {
         showConfirmAlert('检查到更新，立即下载吗？', () => { window.pywebview.api.do_update(true) });
     }
     else {
-        showAlert('深澜网关第三方客户端')
+        showConfirmAlert('深澜网关第三方客户端',()=>{window.pywebview.api.webbrowser_open("https://github.com/HofNature/SRunPy-GUI")}, "icons/github.png");
     }
 }
 function set_auto_login() {
@@ -169,24 +171,39 @@ function login() {
 }
 
 function set_Host(){
-    showInput("请输入深澜网关地址",function(text){
-        window.pywebview.api.set_srun_host(text).then((e)=>{
-            if(e){
-                srun_host=text;
-            }
-            else{
-                showAlert("设置失败！");
-            }
-        });
+    showInput("请输入深澜网关地址",function(srun_host){
+        showInput("请输入自服务地址",function(srun_self){
+            window.pywebview.api.set_srun_host(srun_host,srun_self).then((e) => {
+                if (e) {
+                    showAlert("设置成功！");
+                    updateInfo();
+                }
+                else {
+                    showAlert("设置失败！");
+                }
+            });
+        },srun_self,false);
     },srun_host,false);
 }
 
-function showAlert(text) {
+function showAlert(text, icon) {
+    if (icon) {
+        document.querySelector("#alert-mask img").src = icon;
+    }
+    else {
+        document.querySelector("#alert-mask img").src = "icons/info.png";
+    }
     showConfirmAlert(text, null);
 }
 
-function showConfirmAlert(text, callback) {
+function showConfirmAlert(text, callback,icon) {
     let ele = document.getElementsByClassName("alert-cancle");
+    if (icon) {
+        document.querySelector("#alert-mask img").src = icon;
+    }
+    else {
+        document.querySelector("#alert-mask img").src = "icons/info.png";
+    }
     if (callback) {
         ele[0].style.display = "block";
         ele[1].style.display = "block";
