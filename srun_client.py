@@ -39,7 +39,7 @@ def is_domain(address):
     return False,""
 
 sysToaster = ToastNotifier()
-PROGRAM_VERSION = (1, 0, 4, 0)
+PROGRAM_VERSION = (1, 0, 5, 0)
 
 current_pid = os.getpid()
 resource_path = os.path.dirname(os.path.abspath(__file__))
@@ -382,7 +382,7 @@ class MainWindow():
         self.window.expose(self.srunpy.get_online_data, self.srunpy.login, self.srunpy.logout, self.srunpy.set_config,
                            self.srunpy.get_config, webbrowser_open, exit_application, self.srunpy.set_start_with_windows, self.srunpy.set_auto_login, self.srunpy.do_update,self.srunpy.start_self_service,self.srunpy.set_srun_host)
         webview.start(lambda: self.window.evaluate_js(
-            'updateInfo()'), localization=localization, debug=True)
+            'updateInfo()'), localization=localization, debug=False)
 
 
 if __name__ == "__main__":
