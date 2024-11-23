@@ -5,13 +5,13 @@ dependencies:
   - pip
   - python < 3.13
   - pip:
-      - pyinstaller==6.4.0
-      - pystray==0.19.5
-      - pywebview==4.4.1
-      - pywin32==306
-      - requests==2.31.0
-      - urllib3==2.2.1
-      - win10toast==0.9
-      - nuitka==2.4.10
-      - pycryptodome==3.20.0
+      - pyinstaller
+      - pystray
+      - pywebview < 5
+      - pywin32
+      - requests
+      - urllib3
+      - win10toast
+      - nuitka
+      - pycryptodome
 prefix: C:\miniconda3\envs\SRunPy
