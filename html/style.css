@@ -38,7 +38,8 @@ body {
     flex-grow: 1;
 }
 
-div#alert-mask {
+div#alert-mask,
+div#input-mask {
     position: fixed;
     left: 0;
     right: 0;
@@ -52,7 +53,8 @@ div#alert-mask {
     display: none;
 }
 
-.alert-content {
+.alert-content,
+.input-content {
     width: 256px;
     height: 128px;
     left: calc(50% - 128px - 32px - 5px);
@@ -67,7 +69,13 @@ div#alert-mask {
     padding: 32px;
 }
 
-.alert-content>img {
+.input-content{
+    height: 148px;
+    top: calc(48% - 74px - 32px - 5px);
+}
+
+.alert-content>img,
+.input-content>img {
     height: 32px;
     width: 32px;
     padding-left: calc(50% - 16px);
@@ -82,8 +90,32 @@ div#alert-mask {
     justify-content: center;
 }
 
+#input-text {
+    flex-grow: 1;
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    justify-content: center;
+}
+
 #alert-text>span {
     font-size: 20px;
+    margin-bottom: 10px;
+}
+
+#input-text>span {
+    font-size: 20px;
+}
+
+input#input-input {
+    border: 3px solid #444;
+    font-size: 20px;
+    width: 100%;
+    border-radius: 100px;
+    padding: 4px;
+    background: #fff;
+    text-align: center;
     margin-bottom: 10px;
 }
 
@@ -178,6 +210,10 @@ div#toolbar-item-exit {
 
 div#toolbar-item-about {
     background-image: url(icons/info.png);
+}
+
+div#toolbar-item-settings {
+    background-image: url(icons/setting.png);
 }
 
 .settings-item {

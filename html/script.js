@@ -2,6 +2,7 @@
 //     updateInfo();
 // });
 let user_name = '';
+let srun_host = ''
 let hasUpdate = false;
 
 function updateInfo() {
@@ -56,6 +57,7 @@ function load_data() {
             do_Update();
             window.pywebview.api.do_update(false);
         }
+        srun_host=e[6];
     });
 }
 
@@ -166,6 +168,19 @@ function login() {
     });
 }
 
+function set_Host(){
+    showInput("请输入深澜网关地址",function(text){
+        window.pywebview.api.set_srun_host(text).then((e)=>{
+            if(e){
+                srun_host=text;
+            }
+            else{
+                showAlert("设置失败！");
+            }
+        });
+    },srun_host,false);
+}
+
 function showAlert(text) {
     showConfirmAlert(text, null);
 }
@@ -196,6 +211,38 @@ function showConfirmAlert(text, callback) {
 
 function closeAlert() {
     let mask = document.getElementById("alert-mask");
+    if (mask.style.opacity != "0") {
+        mask.style.opacity = "0";
+        setTimeout(function () {
+            if (mask.style.opacity == "0") {
+                mask.style.display = "none";
+            }
+        }, 500);
+    }
+}
+
+function showInput(text,callback,inputText="",ensureText=true) {
+    let mask = document.getElementById("input-mask");
+    let input = document.getElementById("input-input");
+    input.value=inputText;
+    if (ensureText) {
+        document.getElementById("input-text").children[0].innerText = text;
+    }
+    else {
+        document.getElementById("input-text").children[0].innerHTML = text
+    }
+    document.getElementById("input-confirm").onclick = function () {
+        callback(input.value);
+        closeInput();
+    }
+    mask.style.display = "block";
+    setTimeout(function () {
+        mask.style.opacity = "1";
+    }, 20);
+}
+
+function closeInput() {
+    let mask = document.getElementById("input-mask");
     if (mask.style.opacity != "0") {
         mask.style.opacity = "0";
         setTimeout(function () {

@@ -150,7 +150,13 @@ class Srun_Py():
         try:
             res = requests.get(self.get_ip_api)
         except:
-            res = requests.get(self.get_ip_api_ip,headers=self.header,verify=False)
+            try:
+                res = requests.get(self.get_ip_api_ip,headers=self.header,verify=False)
+            except:
+                try:
+                    res = requests.get(self.get_ip_api.replace('https','http',1))
+                except:
+                    res = requests.get(self.get_ip_api_ip.replace('https','http',1),headers=self.header,verify=False)
         data = json.loads(res.text[res.text.find('(')+1:-1])
         ip = data.get('client_ip') or data.get('online_ip')
         username = data.get('user_name')
@@ -167,7 +173,13 @@ class Srun_Py():
         try:
             get_challenge_res = test.get(self.get_challenge_api, params=get_challenge_params, headers=self.header)
         except:
-            get_challenge_res = test.get(self.get_challenge_api_ip, params=get_challenge_params, headers=self.header,verify=False)
+            try:
+                get_challenge_res = test.get(self.get_challenge_api_ip, params=get_challenge_params, headers=self.header,verify=False)
+            except:
+                try:
+                    get_challenge_res = test.get(self.get_challenge_api.replace('https','http',1), params=get_challenge_params, headers=self.header)
+                except:
+                    get_challenge_res = test.get(self.get_challenge_api_ip.replace('https','http',1), params=get_challenge_params, headers=self.header,verify=False)
         token = re.search('"challenge":"(.*?)"', get_challenge_res.text).group(1)
         return token
 
@@ -176,7 +188,13 @@ class Srun_Py():
             try:
                 res = requests.get(self.get_ip_api)
             except:
-                res = requests.get(self.get_ip_api_ip,headers=self.header,verify=False)
+                try:
+                    res = requests.get(self.get_ip_api_ip,headers=self.header,verify=False)
+                except:
+                    try:
+                        res = requests.get(self.get_ip_api.replace('https','http',1))
+                    except:
+                        res = requests.get(self.get_ip_api_ip.replace('https','http',1),headers=self.header,verify=False)
             data = json.loads(res.text[res.text.find('(')+1:-1])
             if 'error' in data and data['error']=='not_online_error':
                 return True, False, data
@@ -219,7 +237,13 @@ class Srun_Py():
         try:
             srun_portal_res = test.get(self.srun_portal_api, params=srun_portal_params, headers=self.header)
         except:
-            srun_portal_res = test.get(self.srun_portal_api_ip, params=srun_portal_params, headers=self.header,verify=False)
+            try:
+                srun_portal_res = test.get(self.srun_portal_api_ip, params=srun_portal_params, headers=self.header,verify=False)
+            except:
+                try:
+                    srun_portal_res = test.get(self.srun_portal_api.replace('https','http',1), params=srun_portal_params, headers=self.header)
+                except:
+                    srun_portal_res = test.get(self.srun_portal_api_ip.replace('https','http',1), params=srun_portal_params, headers=self.header,verify=False)
         srun_portal_res = srun_portal_res.text
         data = json.loads(srun_portal_res[srun_portal_res.find('(')+1:-1])
         return data.get('error') == 'ok'
@@ -242,7 +266,13 @@ class Srun_Py():
         try:
             user_dm_res = test.get(self.rad_user_dm_api, params=user_dm_params, headers=self.header)
         except:
-            user_dm_res = test.get(self.rad_user_dm_api_ip, params=user_dm_params, headers=self.header,verify=False)
+            try:
+                user_dm_res = test.get(self.rad_user_dm_api_ip, params=user_dm_params, headers=self.header,verify=False)
+            except:
+                try:
+                    user_dm_res = test.get(self.rad_user_dm_api.replace('https','http',1), params=user_dm_params, headers=self.header)
+                except:
+                    user_dm_res = test.get(self.rad_user_dm_api_ip.replace('https','http',1), params=user_dm_params, headers=self.header,verify=False)
         user_dm_res = user_dm_res.text
         return user_dm_res=='logout_ok'
     

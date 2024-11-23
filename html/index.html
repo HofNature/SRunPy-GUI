@@ -19,12 +19,13 @@
 <body>
     <div class="main-container-h">
         <div class="toolbar">
-            <div class="toolbar-item" id="toolbar-item-self-service" title="自服务" onclick="window.pywebview.api.webbrowser_open('https://zfw.buaa.edu.cn')"></div>
-            <div class="toolbar-item" id="toolbar-item-browser" title="网页打开" onclick="window.pywebview.api.webbrowser_open('https://gw.buaa.edu.cn')"></div>
+            <div class="toolbar-item" id="toolbar-item-self-service" title="自服务" onclick="window.pywebview.api.start_self_service()"></div>
+            <!-- <div class="toolbar-item" id="toolbar-item-browser" title="网页打开" onclick="window.pywebview.api.webbrowser_open('https://gw.buaa.edu.cn')"></div> -->
             <div class="toolbar-item" id="toolbar-item-refresh" title="刷新" onclick="updateInfo()"></div>
             <div class="flex-span"></div>
-            <div class="toolbar-item" id="toolbar-item-exit" title="退出软件" onclick="window.pywebview.api.exit_application()"></div>
             <div class="toolbar-item" id="toolbar-item-about" title="关于软件" onclick="do_Update()"></div>
+            <div class="toolbar-item" id="toolbar-item-settings" title="设置" onclick="set_Host()"></div>
+            <div class="toolbar-item" id="toolbar-item-exit" title="退出软件" onclick="window.pywebview.api.exit_application()"></div>
         </div>
         <div class="main-container-v">
             <div class="login-pannel" data-state="offline">
@@ -100,6 +101,23 @@
                 <div class="flex-span"></div>
                 <button class="alert-cancle" onclick="closeAlert()">取消</button>
                 <div class="alert-cancle flex-span"></div>
+            </div>
+        </div>
+    </div>
+    <div id="input-mask">
+        <div class="input-content">
+            <img src="icons/info.png">
+            <div id="input-text">
+                <span>这是一个提示框</span>
+            </div>
+            <input id="input-input">   
+            <div class="flex-span"></div> 
+            <div class="alert-bar">
+                <div class="flex-span"></div>
+                <button id="input-confirm">确定</button>
+                <div class="flex-span"></div>
+                <button onclick="closeInput()">取消</button>
+                <div class="flex-span"></div>
             </div>
         </div>
     </div>

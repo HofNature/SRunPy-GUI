@@ -5,7 +5,9 @@ from srun_py import Srun_Py
 import os
 import sys
 import time
-import pickle
+import json
+import base64
+import socket
 import webview
 import pystray
 import requests
@@ -20,6 +22,22 @@ import win32api
 import win32com.client as client
 from win10toast import ToastNotifier
 
+def is_ip_address(address):
+    try:
+        socket.inet_aton(address)
+        return True
+    except socket.error:
+        return False
+
+def is_domain(address):
+    if not is_ip_address(address):
+        try:
+            ip=socket.gethostbyname(address)
+            return True,ip
+        except socket.error:
+            return False,""
+    return False,""
+
 sysToaster = ToastNotifier()
 PROGRAM_VERSION = (1, 0, 4, 0)
 
@@ -30,7 +48,7 @@ python_path = os.path.abspath(sys.executable)
 start_lnk_path = os.path.join(os.path.expandvars(
     r'%APPDATA%'), r'Microsoft\Windows\Start Menu\Programs\Startup', '校园网登陆器.lnk')
 appdata_path = os.path.expandvars(r'%APPDATA%')
-config_path = os.path.join(appdata_path, 'SRunPy', 'config.bin')
+config_path = os.path.join(appdata_path, 'SRunPy', 'config.json')
 
 def exit_application():
     os._exit(0)
@@ -75,16 +93,19 @@ def load_config():
             "password": "",
             "pass_correct": False,
             "srun_host": "gw.buaa.edu.cn",
+            "self_service": "zfw.buaa.edu.cn",
             "host_ip": "10.200.21.4",
             "sleeptime": 5,
             "auto_login": False,
             "start_with_windows": False
         }
-        pickle.dump(config, open(config_path, 'wb'))
+        with open(config_path, 'w') as f:
+            f.write(json.dumps(config, indent=4, ensure_ascii=True))
     else:
-        config = pickle.load(open(config_path, 'rb'))
+        with open(config_path, 'r') as f:
+            config = json.load(f)
         if config['password'] != "":
-            config['password'] = aes.decode_aes(config['password'])
+            config['password'] = aes.decode_aes(config['password'].encode())
         if not config.get('pass_correct'):
             config['auto_login'] = False
     return config
@@ -94,9 +115,10 @@ def reset_config():
 
 def save_config(config):
     aes = MyAES(key="dj26Dh47useoUI28")
-    config['password'] = aes.encode_aes(config['password'])
-    pickle.dump(config, open(config_path, 'wb'))
-    config['password'] = aes.decode_aes(config['password'])
+    config['password'] = aes.encode_aes(config['password']).decode()
+    with open(config_path, 'w') as f:
+        f.write(json.dumps(config, indent=4, ensure_ascii=True))
+    config['password'] = aes.decode_aes(config['password'].encode())
 
 
 def check_lnk():
@@ -197,15 +219,19 @@ class SRunClient():
             self.pass_correct = self.config['pass_correct']
             self.srun_host = self.config['srun_host']
             self.host_ip = self.config['host_ip']
+            self.self_service = self.config['self_service']
             self.sleeptime = self.config['sleeptime']
             self.auto_login = self.config['auto_login']
             self.start_with_windows = self.config['start_with_windows']
-        except:
+        except Exception as e:
+            print(str(e))
             reset_config()
             self.refresh_config()
             return
-
-        self.srun = Srun_Py(self.srun_host, self.host_ip)
+        if self.srun_host == "":
+            self.srun = Srun_Py(self.host_ip, self.host_ip)
+        else:
+            self.srun = Srun_Py(self.srun_host, self.host_ip)
         if self.start_with_windows:
             create_lnk()
         else:
@@ -244,13 +270,45 @@ class SRunClient():
             return True
 
     def get_config(self):
-        return self.username, self.password != "", self.auto_login, self.start_with_windows, self.isUptoDate, self.hasDoneUpdate
+        return self.username, self.password != "", self.auto_login, self.start_with_windows, self.isUptoDate, self.hasDoneUpdate, self.srun_host if self.srun_host != "" else self.host_ip
     
     def do_update(self,open=False):
         if open:
             webbrowser.open("https://github.com/HofNature/SRunPy-GUI/releases/latest")
         self.hasDoneUpdate = True
 
+    def start_self_service(self):
+        is_available, is_online, data = self.srun.is_connected()
+        if is_online:
+            if "user_name" in data:
+                username = data["user_name"]
+            else:
+                username = self.username
+            data = base64.standard_b64encode(f"{username}:{username}".encode()).decode()
+            webbrowser.open(f"http://{self.self_service}/site/sso?data={data}")
+        else:
+            webbrowser.open(f"http://{self.self_service}")
+
+    def set_srun_host(self, srun_host):
+        # 判断地址是域名还是ip
+        domain, ip = is_domain(srun_host)
+        if domain:
+            self.config['srun_host'] = srun_host
+            self.config['host_ip'] = ip
+        elif is_ip_address(srun_host):
+            self.config['srun_host'] = ""
+            self.config['host_ip'] = srun_host
+        else:
+            return False
+        save_config(self.config)
+        self.refresh_config()
+        del self.srun
+        if self.srun_host == "":
+            self.srun = Srun_Py(self.host_ip, self.host_ip)
+        else:
+            self.srun = Srun_Py(self.srun_host, self.host_ip)
+        return True
+    
     def auto_login_deamon(self):
         login_failed_count = 0
         while self.auto_login:
@@ -322,9 +380,9 @@ class MainWindow():
         self.window = webview.create_window(
             "校园网登陆器", os.path.join(resource_path, "html/index.html"), width=400, height=300, resizable=False)
         self.window.expose(self.srunpy.get_online_data, self.srunpy.login, self.srunpy.logout, self.srunpy.set_config,
-                           self.srunpy.get_config, webbrowser_open, exit_application, self.srunpy.set_start_with_windows, self.srunpy.set_auto_login, self.srunpy.do_update)
+                           self.srunpy.get_config, webbrowser_open, exit_application, self.srunpy.set_start_with_windows, self.srunpy.set_auto_login, self.srunpy.do_update,self.srunpy.start_self_service,self.srunpy.set_srun_host)
         webview.start(lambda: self.window.evaluate_js(
-            'updateInfo()'), localization=localization, debug=False)
+            'updateInfo()'), localization=localization, debug=True)
 
 
 if __name__ == "__main__":
