@@ -86,6 +86,8 @@ python srun_client.py
 
 前端基于 [r0x0r/pywebview](https://github.com/r0x0r/pywebview) 开发
 
+界面字体为 [MiSans Medium] (https://hyperos.mi.com/font/details/sc)
+
 ---
 
 # Campus Network Auto Login Tool (For Srun Gateway)
@@ -175,3 +177,6 @@ This program also supports command line operations. Here are some common command
 The backend of this program is modified from [iskoldt/srunauthenticator](https://github.com/iskoldt-X/SRUN-authenticator)
 
 The frontend is developed based on [r0x0r/pywebview](https://github.com/r0x0r/pywebview)
+
+The interface font is [MiSans Medium] (https://hyperos.mi.com/font/details/sc)
+```
