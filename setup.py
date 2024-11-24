@@ -7,13 +7,13 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 long_description = long_description.replace("./Show.png","https://github.com/HofNature/SRunPy-GUI/raw/main/Show.png")
 setup(
     name="srunpy",
-    version="1.0.6.5",
+    version="1.0.6.7",
     author="HofNature",
     description="适用于深澜网关的校园网第三方登录器",
     long_description=long_description,
     long_description_content_type='text/markdown',    
     packages=find_packages(),
-    install_requires=["pystray","pywebview","pywin32","requests","urllib3","win10toast","pycryptodome"],
+    install_requires=["pystray;platform_system=='Windows'","pywebview;platform_system=='Windows'","pywin32;platform_system=='Windows'","requests","win10toast;platform_system=='Windows'","pycryptodome;platform_system=='Windows'"],
     extras_require={
         'qt': ["pywebview[qt]"],
     },

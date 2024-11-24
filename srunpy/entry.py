@@ -1,9 +1,9 @@
 import argparse
 import json
-from srunpy import SrunClient, MainWindow, TaskbarIcon, GUIBackend, __version__
 import platform
 
 def Cli():
+    from srunpy import SrunClient,  __version__
     parser = argparse.ArgumentParser(description='深澜网关登录器(第三方) 命令行 v'+__version__)
     parser.add_argument('-i', '--info', action="store_true", help='显示网关状态 Info')
     parser.add_argument('-l', '--login', action="store_true", help='登录网关 Login')
@@ -64,6 +64,7 @@ def Gui():
     if platform.system() != 'Windows':
         print('此命令仅支持Windows系统 This command is only supported on Windows system')
         return
+    from srunpy import GUIBackend, MainWindow, TaskbarIcon, __version__
     parser = argparse.ArgumentParser(description='深澜网关登录器(第三方) 用户界面 v'+__version__)
     parser.add_argument('--no-auto-open', action="store_true", help='不自动打开主界面 Do not open the main window automatically')
     parser.add_argument('--qt', action="store_true", help='使用Qt引擎 Use Qt engine')
