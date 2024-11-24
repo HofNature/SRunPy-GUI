@@ -7,7 +7,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 long_description = long_description.replace("./Show.png","https://github.com/HofNature/SRunPy-GUI/raw/main/Show.png")
 setup(
     name="srunpy",
-    version="1.0.6.0",
+    version="1.0.6.2",
     author="HofNature",
     description="适用于深澜网关的校园网第三方登录器",
     long_description=long_description,
@@ -17,7 +17,7 @@ setup(
     extras_require={
         'qt': ["pywebview[qt]"],
     },
-    python_requires=">=3.7, <3.13",
+    python_requires=">=3.7",#, <3.13",
     url="https://github.com/HofNature/SRunPy-GUI",
     license="GPL-3.0",
     keywords=["srun", "srunpy", "srun-client", "srun-gui", "srunpy-gui", "srun-client-gui","network","login","logout","gateway"],
@@ -34,7 +34,7 @@ setup(
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
