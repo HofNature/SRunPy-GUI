@@ -5,7 +5,7 @@ a = Analysis(
     ['srun_client.py'],
     pathex=[],
     binaries=[],
-    datas=[('./html','html')],
+    # datas=[('./html','html')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

@@ -4,10 +4,10 @@ from os import path
 this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
-
+long_description = long_description.replace("./Show.png","https://github.com/HofNature/SRunPy-GUI/raw/main/Show.png")
 setup(
     name="srunpy",
-    version="1.0.5.0",
+    version="1.0.6.0",
     author="HofNature",
     description="适用于深澜网关的校园网第三方登录器",
     long_description=long_description,
@@ -42,6 +42,6 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
-        "Operating System :: Windows",
+        "Operating System :: Microsoft :: Windows",
     ]
 )
