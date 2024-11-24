@@ -132,14 +132,14 @@ def delete_lnk():
 
 def create_desktop_lnk(qt_backend=False):
     no_cmd_path=os.path.join(os.path.dirname(application_path), 'srunpy-gui.exe')
-    if python_path != application_path and os.path.exists(python_path) and 'srunpy.exe'==os.path.basename(application_path) and os.path.exists(no_cmd_path):
+    if python_path != application_path and os.path.exists(python_path) and os.path.basename(application_path).endswith(".exe") and os.path.exists(no_cmd_path):
         desktop_lnk=os.path.join(os.path.expandvars(r'%USERPROFILE%'), 'Desktop', '校园网登陆器.lnk')
         if os.path.exists(desktop_lnk):
             os.remove(desktop_lnk)
         shell = client.Dispatch('Wscript.Shell')
         link = shell.CreateShortCut(desktop_lnk)
         link.TargetPath = no_cmd_path
-        link.Arguments = ' --no-auto-open'
+        #link.Arguments = ' --no-auto-open'
         if qt_backend:
             link.Arguments += ' --qt'
         link.IconLocation = os.path.join(WebRoot, 'icons/logo.ico')+',0'
@@ -156,7 +156,7 @@ def create_lnk(qt_backend=False):
         link.TargetPath = application_path
         link.Arguments = ' --no-auto-open'
         link.IconLocation = application_path+',0'
-    elif os.path.exists(python_path) and 'srunpy.exe'==os.path.basename(application_path) and os.path.exists(no_cmd_path):
+    elif os.path.exists(python_path) and os.path.basename(application_path).endswith(".exe") and os.path.exists(no_cmd_path):
         link.TargetPath = no_cmd_path
         link.Arguments = ' --no-auto-open'
         link.IconLocation = os.path.join(
