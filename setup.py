@@ -7,7 +7,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 long_description = long_description.replace("./Show.png","https://github.com/HofNature/SRunPy-GUI/raw/main/Show.png")
 setup(
     name="srunpy",
-    version="1.0.6.3",
+    version="1.0.6.4",
     author="HofNature",
     description="适用于深澜网关的校园网第三方登录器",
     long_description=long_description,

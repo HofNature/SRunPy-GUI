@@ -86,7 +86,7 @@ python srun_client.py
 
 前端基于 [r0x0r/pywebview](https://github.com/r0x0r/pywebview) 开发
 
-界面字体为 [MiSans Medium] (https://hyperos.mi.com/font/details/sc)
+界面字体为 [MiSans Medium](https://hyperos.mi.com/font/details/sc)
 
 ---
 
@@ -178,5 +178,5 @@ The backend of this program is modified from [iskoldt/srunauthenticator](https:/
 
 The frontend is developed based on [r0x0r/pywebview](https://github.com/r0x0r/pywebview)
 
-The interface font is [MiSans Medium] (https://hyperos.mi.com/font/details/sc)
+The interface font is [MiSans Medium](https://hyperos.mi.com/font/details/sc)
 ```
