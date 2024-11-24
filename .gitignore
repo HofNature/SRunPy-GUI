@@ -8,3 +8,5 @@ srun_client.build/*
 srun_client.onefile-build/*
 srun_client.exe
 /msixpackage
+*.pyc
+/srunpy.egg-info

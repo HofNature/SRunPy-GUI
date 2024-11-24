@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from srun_py import Srun_Py
+from srunpy import SrunClient, PROGRAM_VERSION, WebRoot
 
 import os
 import sys
@@ -39,10 +39,11 @@ def is_domain(address):
     return False,""
 
 sysToaster = ToastNotifier()
-PROGRAM_VERSION = (1, 0, 5, 0)
 
+
+#qt_backend = False
 current_pid = os.getpid()
-resource_path = os.path.dirname(os.path.abspath(__file__))
+# resource_path = os.path.dirname(os.path.abspath(__file__))
 application_path = os.path.abspath(sys.argv[0])
 python_path = os.path.abspath(sys.executable)
 start_lnk_path = os.path.join(os.path.expandvars(
@@ -97,7 +98,7 @@ def load_config():
             "host_ip": "10.200.21.4",
             "sleeptime": 5,
             "auto_login": False,
-            "start_with_windows": False
+            "start_with_windows": False,
         }
         with open(config_path, 'w') as f:
             f.write(json.dumps(config, indent=4, ensure_ascii=True))
@@ -129,21 +130,44 @@ def delete_lnk():
     if check_lnk():
         os.remove(start_lnk_path)
 
+def create_desktop_lnk(qt_backend=False):
+    no_cmd_path=os.path.join(os.path.dirname(application_path), 'srunpy-gui.exe')
+    if python_path != application_path and os.path.exists(python_path) and 'srunpy.exe'==os.path.basename(application_path) and os.path.exists(no_cmd_path):
+        desktop_lnk=os.path.join(os.path.expandvars(r'%USERPROFILE%'), 'Desktop', '校园网登陆器.lnk')
+        if os.path.exists(desktop_lnk):
+            os.remove(desktop_lnk)
+        shell = client.Dispatch('Wscript.Shell')
+        link = shell.CreateShortCut(desktop_lnk)
+        link.TargetPath = no_cmd_path
+        link.Arguments = ' --no-auto-open'
+        if qt_backend:
+            link.Arguments += ' --qt'
+        link.IconLocation = os.path.join(WebRoot, 'icons/logo.ico')+',0'
+        link.save()
+    else:
+        print("非EntryPoint启动，无法创建桌面快捷方式")
 
-def create_lnk():
+def create_lnk(qt_backend=False):
     delete_lnk()
     shell = client.Dispatch('Wscript.Shell')
     link = shell.CreateShortCut(start_lnk_path)
+    no_cmd_path=os.path.join(os.path.dirname(application_path), 'srunpy-gui.exe')
     if python_path == application_path or not os.path.exists(python_path):
         link.TargetPath = application_path
         link.Arguments = ' --no-auto-open'
         link.IconLocation = application_path+',0'
+    elif os.path.exists(python_path) and 'srunpy.exe'==os.path.basename(application_path) and os.path.exists(no_cmd_path):
+        link.TargetPath = no_cmd_path
+        link.Arguments = ' --no-auto-open'
+        link.IconLocation = os.path.join(
+            WebRoot, 'icons/logo.ico')+',0'
     else:
         link.TargetPath = python_path
         link.Arguments = '"'+application_path+'" --no-auto-open'
         link.IconLocation = os.path.join(
-            resource_path, 'html/icons/journey.ico')+',0'
-
+            WebRoot, 'icons/logo.ico')+',0'
+    if qt_backend:
+        link.Arguments += ' --qt'
     link.save()
 
 
@@ -180,13 +204,13 @@ class TaskbarIcon():
         )
         try:
             if get_Color_Mode() == 0:
-                icon_path = r'html\icons\journey_white.png'
+                icon_path = r'icons\journey_white.png'
             else:
-                icon_path = r'html\icons\journey.png'
+                icon_path = r'icons\journey.png'
         except:
-            icon_path = r'logo.png'
+            icon_path = r'icons\logo.png'
         self.icon = pystray.Icon("SRunPy", Image.open(
-            os.path.join(resource_path, icon_path)), "校园网登陆器", self.menu)
+            os.path.join(WebRoot, icon_path)), "校园网登陆器", self.menu)
         self.icon.run()
 
     def stop(self):
@@ -197,8 +221,14 @@ class TaskbarIcon():
         os._exit(0)
 
 
-class SRunClient():
-    def __init__(self):
+class GUIBackend():
+    def __init__(self,use_qt=False):
+        if use_qt:
+            try:
+                import webview.platforms.qt
+            except ImportError:
+                use_qt = False
+        self.qt_backend = use_qt
         self.auto_login_thread = None
         self.isUptoDate = False
         self.hasDoneUpdate = False
@@ -208,6 +238,11 @@ class SRunClient():
         self.refresh_config()
         if 'process_id' in self.config and self.config['process_id'] != current_pid:
             subprocess.call("start /B taskkill /f /pid "+str(self.config['process_id']),shell=True)
+        if 'process_id' not in self.config:
+            try:
+                create_desktop_lnk(qt_backend=self.qt_backend)
+            except:
+                pass
         self.config["process_id"] = current_pid
         save_config(self.config)
 
@@ -229,11 +264,11 @@ class SRunClient():
             self.refresh_config()
             return
         if self.srun_host == "":
-            self.srun = Srun_Py(self.host_ip, self.host_ip)
+            self.srun = SrunClient(self.host_ip, self.host_ip)
         else:
-            self.srun = Srun_Py(self.srun_host, self.host_ip)
+            self.srun = SrunClient(self.srun_host, self.host_ip)
         if self.start_with_windows:
-            create_lnk()
+            create_lnk(qt_backend=self.qt_backend)
         else:
             delete_lnk()
         if self.auto_login:
@@ -305,9 +340,9 @@ class SRunClient():
         self.refresh_config()
         del self.srun
         if self.srun_host == "":
-            self.srun = Srun_Py(self.host_ip, self.host_ip)
+            self.srun = SrunClient(self.host_ip, self.host_ip)
         else:
-            self.srun = Srun_Py(self.srun_host, self.host_ip)
+            self.srun = SrunClient(self.srun_host, self.host_ip)
         return True
     
     def auto_login_deamon(self):
@@ -368,6 +403,8 @@ class MainWindow():
     def __init__(self, srunpy, open_window=True):
         self.srunpy = srunpy
         self.window = None
+        if self.srunpy.qt_backend:
+            self.icon_path = os.path.join(WebRoot, r'icons\logo.png')
         if open_window:
             self.start_webview()
 
@@ -379,20 +416,12 @@ class MainWindow():
             'global.quitConfirmation': u'确定关闭?',
         }
         self.window = webview.create_window(
-            "校园网登陆器", os.path.join(resource_path, "html/index.html"), width=400, height=300, resizable=False)
+            "校园网登陆器", os.path.join(WebRoot, "index.html"), width=400, height=300, resizable=False)
         self.window.expose(self.srunpy.get_online_data, self.srunpy.login, self.srunpy.logout, self.srunpy.set_config,
                            self.srunpy.get_config, webbrowser_open, exit_application, self.srunpy.set_start_with_windows, self.srunpy.set_auto_login, self.srunpy.do_update,self.srunpy.start_self_service,self.srunpy.set_srun_host)
-        webview.start(lambda: self.window.evaluate_js(
-            'updateInfo()'), localization=localization, debug=False)
-
-
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description='校园网登陆器')
-    parser.add_argument('--no-auto-open', action="store_true", help='不自动打开主界面')
-    args = parser.parse_args()
-    srunpy = SRunClient()
-    main_window = MainWindow(srunpy, not args.no_auto_open)
-    while True:
-        TaskbarIcon()
-        main_window.start_webview()
+        if self.srunpy.qt_backend:
+            webview.start(lambda: self.window.evaluate_js(
+                'updateInfo()'), localization=localization, debug=False, gui='qt', icon=self.icon_path)
+        else:
+            webview.start(lambda: self.window.evaluate_js(
+                'updateInfo()'), localization=localization, debug=False)

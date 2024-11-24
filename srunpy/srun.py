@@ -1,3 +1,8 @@
+"""
+This module provides functionality to interact with the Srun authentication system.
+Modified from: https://github.com/iskoldt-X/SRUN-authenticator
+"""
+
 import json
 import requests
 import time
@@ -275,25 +280,3 @@ class Srun_Py():
                     user_dm_res = test.get(self.rad_user_dm_api_ip.replace('https','http',1), params=user_dm_params, headers=self.header,verify=False)
         user_dm_res = user_dm_res.text
         return user_dm_res=='logout_ok'
-    
-if __name__ == '__main__':
-    print('1. 判断登录状态')
-    print('2. 登录账号')
-    print('3. 登出账号')
-    srun_client = Srun_Py()
-    command = ' '
-    while command != 'q':
-        command = input('请输入命令，输入q退出:')
-        if command == '1':
-            is_available, is_online, online_data = srun_client.is_connected()
-            print('网络是否可用:', is_available)
-            print('是否已登录:', is_online)
-        elif command == '2':
-            import getpass
-            username = input('username: ')
-            passwd = getpass.getpass('passwd: ')
-            srun_client.login(username, passwd)
-        elif command == '3':
-            srun_client.logout()
-        else:
-            print('未知操作!')
