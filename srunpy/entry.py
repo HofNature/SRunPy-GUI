@@ -1,6 +1,7 @@
 import argparse
 import json
 from srunpy import SrunClient, MainWindow, TaskbarIcon, GUIBackend, __version__
+import platform
 
 def Cli():
     parser = argparse.ArgumentParser(description='深澜网关登录器(第三方) 命令行 v'+__version__)
@@ -9,6 +10,7 @@ def Cli():
     parser.add_argument('-o', '--logout', action="store_true", help='登出网关 Logout')
     parser.add_argument('-u', '--username', default=None, help='登录用户名 Username')
     parser.add_argument('-p', '--passwd', default=None, help='登录密码 Password')
+    parser.add_argument('-g', '--gateway', default=None, help='网关地址 Gateway')
     args = parser.parse_args()
     mode=None
     if args.info:
@@ -33,7 +35,10 @@ def Cli():
         else:
             print('未知操作! Unknown operation!')
     if mode is not None:
-        srun_client = SrunClient()
+        if args.gateway is not None:
+            srun_client = SrunClient(srun_host=args.gateway,host_ip=args.gateway)
+        else:
+            srun_client = SrunClient()
         if mode == 'info':
             is_available, is_online, online_data = srun_client.is_connected()
             print('网络是否可用 Available:', is_available)
@@ -56,6 +61,9 @@ def Cli():
             srun_client.logout()
 
 def Gui():
+    if platform.system() != 'Windows':
+        print('此命令仅支持Windows系统 This command is only supported on Windows system')
+        return
     parser = argparse.ArgumentParser(description='深澜网关登录器(第三方) 用户界面 v'+__version__)
     parser.add_argument('--no-auto-open', action="store_true", help='不自动打开主界面 Do not open the main window automatically')
     parser.add_argument('--qt', action="store_true", help='使用Qt引擎 Use Qt engine')
@@ -65,3 +73,10 @@ def Gui():
     while True:
         TaskbarIcon()
         main_window.start_webview()
+
+def Main():
+    # 判断操作系统
+    if platform.system() == 'Windows':
+        Gui()
+    else:
+        Cli()

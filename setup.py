@@ -7,7 +7,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 long_description = long_description.replace("./Show.png","https://github.com/HofNature/SRunPy-GUI/raw/main/Show.png")
 setup(
     name="srunpy",
-    version="1.0.6.4",
+    version="1.0.6.5",
     author="HofNature",
     description="适用于深澜网关的校园网第三方登录器",
     long_description=long_description,
@@ -27,7 +27,7 @@ setup(
             "srunpy-gui=srunpy.entry:Gui",
         ],
         "console_scripts": [
-            "srunpy=srunpy.entry:Gui",
+            "srunpy=srunpy.entry:Main",
             "srunpy-cli=srunpy.entry:Cli",
         ]
     },
@@ -42,6 +42,6 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
-        "Operating System :: Microsoft :: Windows",
+        "Operating System :: OS Independent",
     ]
 )
