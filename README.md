@@ -21,6 +21,16 @@ pip install srunpy
 srunpy
 ```
 初次启动时会自动创建桌面快捷方式，之后可以直接双击桌面快捷方式启动程序。
+由于深澜网关不提供登录Token，因此本程序需要保存您的账号密码才能工作。您的账户密码将会被保存在本地的配置文件中，除用于登录外不会被其他用途使用。
+本程序在保存您的账号密码时会使用AES加密，但默认AES密钥可以在本开源项目中找到，为确保安全，您可以通过如下命令重新编译本程序：
+
+```sh
+pip install srunpy[build]
+srunpy-build # 可通过--path指定输出路径，默认在您的桌面上
+```
+编译过程中会生成新的AES密钥，并硬编码到程序中，提高了您的账号密码的安全性。  此外，编译后的程序不再需要Python环境，可以直接运行。
+> **注意**: 
+本工具的编译借助Nuitka实现，优先使用Visual Studio 2021以上版本编译，若未安装，则会自动下载并使用MinGW64进行编译。编译后的程序无法通过pip升级，需要手动下载新版本并重新编译。  
 
 本程序默认使用Edge WebView2作为浏览器内核，可修改为QtWebEngine, 可用  
 
@@ -29,6 +39,7 @@ pip install srunpy[qt]
 srunpy --qt
 ```
 **方法二:** 前往 [Github Release](https://github.com/HofNature/SRunPy-GUI/releases) 下载SRunClient.zip,解压后直接运行  
+此方法无需安装Python环境，但无法使用命令行操作，且由于应用程序未签名，可能会被Windows Defender或其他杀毒软件误报。
 
 **方法三:** 从Github Clone 本项目，然后安装  
 
@@ -48,10 +59,8 @@ conda activate srunpy
 python srun_client.py
 ```
 
-此方法无需安装Python环境，但无法使用命令行操作，且由于应用程序未签名，可能会被Windows Defender或其他杀毒软件误报。
-
-本程序默认设置为北航网关，其它使用深澜网页认证的用户可以点击界面左侧的设置按钮修改为自己学校的认证地址。
-
+> **备注**:  
+本程序默认设置为北航网关，其它使用深澜网页认证的用户可以点击界面左侧的设置按钮修改为自己学校的认证地址。  
 配置文件位于C:\Users\<用户名>\AppData\Roaming\SRunPy，其中的`config.json`文件保存了用户的账号密码等信息。
 
 ### 命令行使用说明

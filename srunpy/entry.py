@@ -60,7 +60,7 @@ def Cli():
         elif mode == 'logout':
             srun_client.logout()
 
-def Gui():
+def Gui(aes_key=None):
     if platform.system() != 'Windows':
         print('此命令仅支持Windows系统 This command is only supported on Windows system')
         return
@@ -69,7 +69,10 @@ def Gui():
     parser.add_argument('--no-auto-open', action="store_true", help='不自动打开主界面 Do not open the main window automatically')
     parser.add_argument('--qt', action="store_true", help='使用Qt引擎 Use Qt engine')
     args = parser.parse_args()
-    srunpy = GUIBackend(use_qt=args.qt)
+    if aes_key is not None:
+        srunpy = GUIBackend(use_qt=args.qt,aes_key=aes_key)
+    else:
+        srunpy = GUIBackend(use_qt=args.qt)
     main_window = MainWindow(srunpy, not args.no_auto_open)
     while True:
         TaskbarIcon()
@@ -81,3 +84,89 @@ def Main():
         Gui()
     else:
         Cli()
+
+def Build():
+    if platform.system() != 'Windows':
+        print('此命令仅支持Windows系统 This command is only supported on Windows system')
+        return
+    try:
+        import nuitka
+    except ImportError:
+        print('请先安装依赖 Please install dependencies')
+        print('你可以使用以下命令 You can use the following command')
+        print('pip install srunpy[build]')
+        return
+    parser = argparse.ArgumentParser(description='编译为独立可执行文件 Compile to standalone executable')
+    parser.add_argument('--path', default=None, help='输出文件夹路径 Output folder path')
+    args = parser.parse_args()
+
+    import os
+    import sys
+    import random
+    import string
+
+    python_path = os.path.abspath(sys.executable)
+    if python_path.endswith('pythonw.exe'):
+        python_path = os.path.join(os.path.dirname(python_path),'python.exe')
+    if not os.path.exists(python_path):
+        print('未找到Python解释器 Not found Python interpreter')
+        return
+    
+    #获取桌面路径
+    if args.path is not None:
+        path = args.path
+    else:
+        desktop_path = os.path.join(os.path.expanduser("~"), 'Desktop')
+        defalut_path = os.path.join(desktop_path, 'SrunPy')
+        print('请输入输出文件夹路径 Please enter the output folder path')
+        path=input('['+defalut_path+']')
+        if path == '':
+            path = defalut_path
+
+    #编译为独立可执行文件
+    if not os.path.exists(path):
+        os.makedirs(path)
+    else:
+        res = input('文件夹已存在,是否覆盖? The folder already exists, do you want to overwrite? (Y/n)')
+        if res.lower() == 'n':
+            return
+    
+    #生成入口点文件
+    aes_key = ''.join(random.sample(string.ascii_letters + string.digits, 16))
+    with open(os.path.join(path,'SRunClient.py'),'w',encoding='utf-8') as f:
+        f.write("from srunpy.entry import Gui\n")
+        f.write("Gui('"+aes_key+"')\n")
+    #编译
+    from srunpy import WebRoot, __version__
+    # 设置工作目录
+    os.chdir(path)
+    # build_module('SRunClient.py',standalone=True,include_data=[(WebRoot,'srunpy/html')],windows_icon_from_ico='./logo.ico',file_version=__version__,product_version=__version__,company_name='HopeOFNature',product_name='SRun Authenticator',file_description='SRun Authenticator')
+    # python -m nuitka --lto=no --mingw64 --standalone .\srun_client.py --include-data-dir=./srunpy/html=./srunpy/html --windows-console-mode=attach --windows-icon-from-ico=./logo.ico --file-version="1.0.6" --product-version="1.0.6.0" --company-name="HopeOFNature" --product-name="SRun Authenticator" --file-description="SRun Authenticator" 
+    execute=[python_path,'-m','nuitka','--lto=no',
+             '--standalone','SRunClient.py',
+             f'--include-data-dir="{WebRoot}"=srunpy/html',
+             '--windows-console-mode=attach',
+             f'--windows-icon-from-ico="{os.path.join(WebRoot, 'icons/logo.ico')}"',
+             f'--file-version={__version__}',
+             f'--product-version={__version__}',
+             '--company-name=HopeOFNature',
+             '--product-name="SRun Authenticator"',
+             '--file-description="SRun Authenticator"']
+    print('编译中 Compiling')
+    print(' '.join(execute))
+    os.system(' '.join(execute))
+    exe_path=os.path.join(path,'SRunClient.dist','SRunClient.exe')
+    if not os.path.exists(exe_path):
+        print('编译失败,请查看错误信息 Compile failed, please check the error message')
+        return
+    else:
+        print('编译完成 Compile completed')
+        print('建议删除SRunClient.py文件以保护密钥 It is recommended to delete the SRunClient.py file to protect the key')
+        print('请在以下路径查看可执行文件 Please check the executable file in the following path')
+        print(os.path.abspath(exe_path))
+        res=input('是否立即启动程序? Whether to start the program immediately? (Y/n)')
+        if res.lower() == 'n':
+            return
+        # 后台启动程序并退出
+        os.system('start '+exe_path)
+        return

@@ -85,8 +85,8 @@ def get_Update():
     except:
         return False
 
-def load_config():
-    aes = MyAES(key="dj26Dh47useoUI28")
+def load_config(aes_key):
+    aes = MyAES(key=aes_key)
     if not os.path.exists(config_path):
         os.makedirs(os.path.dirname(config_path), exist_ok=True)
         config = {
@@ -114,8 +114,8 @@ def load_config():
 def reset_config():
     os.remove(config_path)
 
-def save_config(config):
-    aes = MyAES(key="dj26Dh47useoUI28")
+def save_config(config,aes_key):
+    aes = MyAES(key=aes_key)
     config['password'] = aes.encode_aes(config['password']).decode()
     with open(config_path, 'w') as f:
         f.write(json.dumps(config, indent=4, ensure_ascii=True))
@@ -222,12 +222,15 @@ class TaskbarIcon():
 
 
 class GUIBackend():
-    def __init__(self,use_qt=False):
+    def __init__(self,use_qt=False,aes_key="dj26Dh47useoUI28"):
         if use_qt:
             try:
                 import webview.platforms.qt
             except ImportError:
+                print("无法导入Qt库，请使用pip install srumpy[qt]安装")
+                print("Failed to import Qt library, please use pip install srumpy[qt] to install")
                 use_qt = False
+        self.aes_key = aes_key
         self.qt_backend = use_qt
         self.auto_login_thread = None
         self.isUptoDate = False
@@ -244,11 +247,11 @@ class GUIBackend():
             except:
                 pass
         self.config["process_id"] = current_pid
-        save_config(self.config)
+        save_config(self.config,aes_key)
 
     def refresh_config(self):
         try:
-            self.config = load_config()
+            self.config = load_config(self.aes_key)
             self.username = self.config['username']
             self.password = self.config['password']
             self.pass_correct = self.config['pass_correct']
@@ -287,12 +290,12 @@ class GUIBackend():
         if password != "" and password != self.config['password']:
             self.config['password'] = password
             self.pass_correct=False
-        save_config(self.config)
+        save_config(self.config,self.aes_key)
         self.refresh_config()
 
     def set_start_with_windows(self, start_with_windows):
         self.config['start_with_windows'] = start_with_windows
-        save_config(self.config)
+        save_config(self.config,self.aes_key)
         self.refresh_config()
 
     def set_auto_login(self, auto_login):
@@ -300,7 +303,7 @@ class GUIBackend():
             return False
         else:
             self.config['auto_login'] = auto_login
-            save_config(self.config)
+            save_config(self.config,self.aes_key)
             self.refresh_config()
             return True
 
@@ -336,7 +339,7 @@ class GUIBackend():
         else:
             return False
         self.config['self_service'] = self_service
-        save_config(self.config)
+        save_config(self.config,self.aes_key)
         self.refresh_config()
         del self.srun
         if self.srun_host == "":
@@ -382,7 +385,7 @@ class GUIBackend():
             success = False
         if success and not self.pass_correct:
             self.config['pass_correct'] = True
-            save_config(self.config)
+            save_config(self.config,self.aes_key)
             self.refresh_config()
         return success
 
