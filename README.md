@@ -100,7 +100,6 @@ python srun_client.py
 ---
 
 # Campus Network Auto Login Tool (For Srun Gateway)
-
 ### Supported Features
 
 1. Remember account and password
@@ -122,6 +121,16 @@ pip install srunpy
 srunpy
 ```
 The first time you start, a desktop shortcut will be created automatically. You can then start the program by double-clicking the desktop shortcut.
+Since the Srun gateway does not provide a login token, this program needs to save your account and password to work. Your account and password will be saved in a local configuration file and will not be used for any other purpose.
+This program uses AES encryption when saving your account and password, but the default AES key can be found in this open-source project. To ensure security, you can recompile this program with the following command:
+
+```sh
+pip install srunpy[build]
+srunpy-build # You can specify the output path with --path, default is on your desktop
+```
+During the compilation process, a new AES key will be generated and hardcoded into the program, improving the security of your account and password. Additionally, the compiled program no longer requires a Python environment and can be run directly.
+> **Note**: 
+The compilation of this tool is implemented with Nuitka. It is recommended to use Visual Studio 2021 or later versions for compilation. If not installed, MinGW64 will be automatically downloaded and used for compilation. The compiled program cannot be upgraded via pip and requires manual download of the new version and recompilation.
 
 This program uses Edge WebView2 as the browser engine by default. It can be changed to QtWebEngine, available with
 
@@ -129,7 +138,8 @@ This program uses Edge WebView2 as the browser engine by default. It can be chan
 pip install srunpy[qt]
 srunpy --qt
 ```
-**Method 2:** Go to [Github Release](https://github.com/HofNature/SRunPy-GUI/releases) to download SRunClient.zip, unzip and run directly
+**Method 2:** Go to [Github Release](https://github.com/HofNature/SRunPy-GUI/releases) to download SRunClient.zip, unzip and run directly  
+This method does not require a Python environment but cannot use command line operations. Also, since the application is unsigned, it may be falsely flagged by Windows Defender or other antivirus software.
 
 **Method 3:** Clone this project from Github and then install
 
@@ -149,10 +159,8 @@ conda activate srunpy
 python srun_client.py
 ```
 
-This method does not require a Python environment, but cannot use command line operations. Also, since the application is unsigned, it may be falsely flagged by Windows Defender or other antivirus software.
-
-This program is set to the Beihang University gateway by default. Other users using Srun web authentication can click the settings button on the left side of the interface to change to their school's authentication address.
-
+> **Note**:  
+This program is set to the Beihang University gateway by default. Other users using Srun web authentication can click the settings button on the left side of the interface to change to their school's authentication address.  
 The configuration file is located at C:\Users\<username>\AppData\Roaming\SRunPy, where the `config.json` file saves the user's account and password information.
 
 ### Command Line Usage Instructions
@@ -188,4 +196,3 @@ The backend of this program is modified from [iskoldt/srunauthenticator](https:/
 The frontend is developed based on [r0x0r/pywebview](https://github.com/r0x0r/pywebview)
 
 The interface font is [MiSans Medium](https://hyperos.mi.com/font/details/sc)
-```
