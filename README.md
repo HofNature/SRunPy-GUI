@@ -80,6 +80,12 @@ python srun_client.py
     srunpy-cli --logout
     ```
 
+你可以指定网关地址，例如：
+
+```sh
+srunpy-cli --login --username <你的用户名> --passwd <你的密码> --gateway <网关地址>
+```
+
 ### TODO
 
 1. 编写注释
@@ -179,6 +185,12 @@ This program also supports command line operations. Here are some common command
     ```sh
     srunpy-cli --logout
     ```
+
+You can specify the gateway address, for example:
+
+```sh
+srunpy-cli --login --username <your username> --passwd <your password> --gateway <gateway address>
+```
 
 ### TODO
 

@@ -22,6 +22,7 @@ def Cli():
     if mode is None:
         print('深澜网关登录器(第三方) 命令行 v'+__version__)
         print('SrunClient (Third-party) Command Line v'+__version__)
+        print('如需设置网关地址,请使用-g参数 Use -g parameter to set gateway address')
         print('1. 判断登录状态 Check login status')
         print('2. 登录账号 Login account')
         print('3. 登出账号 Logout account')
@@ -98,6 +99,12 @@ def Build():
         return
     parser = argparse.ArgumentParser(description='编译为独立可执行文件 Compile to standalone executable')
     parser.add_argument('--path', default=None, help='输出文件夹路径 Output folder path')
+    parser.add_argument('--default_key', action="store_true", help='使用默认密钥 Use default key')
+    parser.add_argument('--icon', default=None, help='图标路径 Icon path')
+    parser.add_argument('--version', default=None, help='版本号 Version')   
+    parser.add_argument('--company', default=None, help='公司名称 Company name')
+    parser.add_argument('--product', default=None, help='产品名称 Product name')
+    parser.add_argument('--description', default=None, help='文件描述 File description')
     args = parser.parse_args()
 
     import os
@@ -135,23 +142,48 @@ def Build():
     aes_key = ''.join(random.sample(string.ascii_letters + string.digits, 16))
     with open(os.path.join(path,'SRunClient.py'),'w',encoding='utf-8') as f:
         f.write("from srunpy.entry import Gui\n")
-        f.write("Gui('"+aes_key+"')\n")
+        if args.default_key:
+            f.write("Gui()\n")
+        else:
+            f.write("Gui('"+aes_key+"')\n")
     #编译
     from srunpy import WebRoot, __version__
     # 设置工作目录
     os.chdir(path)
     # build_module('SRunClient.py',standalone=True,include_data=[(WebRoot,'srunpy/html')],windows_icon_from_ico='./logo.ico',file_version=__version__,product_version=__version__,company_name='HopeOFNature',product_name='SRun Authenticator',file_description='SRun Authenticator')
     # python -m nuitka --lto=no --mingw64 --standalone .\srun_client.py --include-data-dir=./srunpy/html=./srunpy/html --windows-console-mode=attach --windows-icon-from-ico=./logo.ico --file-version="1.0.6" --product-version="1.0.6.0" --company-name="HopeOFNature" --product-name="SRun Authenticator" --file-description="SRun Authenticator" 
+    if args.icon is not None and os.path.exists(args.icon):
+        icon_path = args.icon
+    else:
+        icon_path = os.path.join(WebRoot, 'icons/logo.ico')
+    if args.version is not None:
+        file_version = args.version
+        product_version = args.version
+    else:
+        file_version = __version__
+        product_version = __version__
+    if args.company is not None:    
+        company_name = args.company
+    else:
+        company_name = 'HopeOFNature'
+    if args.product is not None:
+        product_name = args.product
+    else:
+        product_name = 'SRun Authenticator'
+    if args.description is not None:
+        file_description = args.description
+    else:
+        file_description = 'SRun Authenticator'
     execute=[python_path,'-m','nuitka','--lto=no',
              '--standalone','SRunClient.py',
              f'--include-data-dir="{WebRoot}"=srunpy/html',
              '--windows-console-mode=attach',
-             f'--windows-icon-from-ico="{os.path.join(WebRoot, 'icons/logo.ico')}"',
-             f'--file-version={__version__}',
-             f'--product-version={__version__}',
-             '--company-name=HopeOFNature',
-             '--product-name="SRun Authenticator"',
-             '--file-description="SRun Authenticator"']
+             f'--windows-icon-from-ico="{icon_path}"',
+             f'--file-version="{file_version}"',
+             f'--product-version="{product_version}"',
+             f'--company-name="{company_name}"',
+             f'--product-name="{product_name}"',
+             f'--file-description="{file_description}"']
     print('编译中 Compiling')
     print(' '.join(execute))
     os.system(' '.join(execute))
@@ -161,7 +193,8 @@ def Build():
         return
     else:
         print('编译完成 Compile completed')
-        print('建议删除SRunClient.py文件以保护密钥 It is recommended to delete the SRunClient.py file to protect the key')
+        if not args.default_key:
+            print('建议删除SRunClient.py文件以保护密钥 It is recommended to delete the SRunClient.py file to protect the key')
         print('请在以下路径查看可执行文件 Please check the executable file in the following path')
         print(os.path.abspath(exe_path))
         res=input('是否立即启动程序? Whether to start the program immediately? (Y/n)')
