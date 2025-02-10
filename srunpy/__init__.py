@@ -1,4 +1,4 @@
-PROGRAM_VERSION = (1, 0, 6, 8)
+PROGRAM_VERSION = (1, 0, 7, 0)
 __version__ = '.'.join(map(str, PROGRAM_VERSION))
 
 from .html import WebRoot

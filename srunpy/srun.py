@@ -11,6 +11,8 @@ import hmac
 import hashlib
 import math
 
+from urllib.parse import urlparse, parse_qs
+
 def get_md5(password, token):
     return hmac.new(token.encode(), password.encode(), hashlib.md5).hexdigest()
 
@@ -215,10 +217,19 @@ class Srun_Py():
         chksum = get_sha1(self.get_chksum(username,token,hmd5,ip,i))
         return i, hmd5, chksum
 
+    def update_acid(self):
+        response = requests.get(url=self.init_url.replace('https','http',1), allow_redirects=True)
+        parsed_url = urlparse(response.url)
+        query_params = parse_qs(parsed_url.query)
+        if 'ac_id' in query_params and len(query_params['ac_id']) > 0:
+            self.ac_id = query_params['ac_id'][0]
+            # print('ac_id:',self.ac_id)
+
     def login(self,username,password):
         is_available, is_online, _ = self.is_connected()
         if not is_available or is_online:
             raise Exception('You are already online or the network is not available!')
+        self.update_acid()
         ip , _ = self.init_getip()
         token = self.get_token(username,ip)
         i, hmd5, chksum = self.do_complex_work(username,password,ip,token)

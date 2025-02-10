@@ -140,11 +140,11 @@ function login() {
                     if (e) {
                         if (document.getElementById('auto-start').getAttribute('data-state') == 'selected') {
                             window.pywebview.api.set_start_with_windows(true).then(() => {
-                                updateInfo();
+                                setTimeout(updateInfo,500)
                             });
                         }
                         else {
-                            updateInfo();
+                            setTimeout(updateInfo,500)
                         }
                     }
                     else {
@@ -158,7 +158,7 @@ function login() {
             window.pywebview.api.logout().then((e) => {
                 if (e) {
                     window.pywebview.api.set_auto_login(false).then((e) => {
-                        updateInfo();
+                        setTimeout(updateInfo,500)
                     });
                 }
                 else {
