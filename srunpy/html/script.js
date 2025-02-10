@@ -6,8 +6,8 @@ let srun_host = '';
 let srun_self = '';
 let hasUpdate = false;
 
-function updateInfo() {
-    window.pywebview.api.get_online_data().then((e) => {
+function updateInfo(hope) {
+    let callback = (e) => {
         is_available = e[0];
         if (!is_available) {
             showAlert("不在校园网环境！");
@@ -29,7 +29,13 @@ function updateInfo() {
             document.getElementById('balance-last').innerText = online_data.user_balance + '元';
         }
         load_data();
-    })
+    }
+    if (hope === undefined) {
+        window.pywebview.api.get_online_data().then(callback);
+    }
+    else {
+        window.pywebview.api.get_online_data(hope).then(callback);
+    }
 }
 function load_data() {
     window.pywebview.api.get_config().then((e) => {
@@ -140,11 +146,11 @@ function login() {
                     if (e) {
                         if (document.getElementById('auto-start').getAttribute('data-state') == 'selected') {
                             window.pywebview.api.set_start_with_windows(true).then(() => {
-                                setTimeout(updateInfo,500)
+                                updateInfo(true);
                             });
                         }
                         else {
-                            setTimeout(updateInfo,500)
+                            updateInfo(true);
                         }
                     }
                     else {
@@ -158,7 +164,7 @@ function login() {
             window.pywebview.api.logout().then((e) => {
                 if (e) {
                     window.pywebview.api.set_auto_login(false).then((e) => {
-                        setTimeout(updateInfo,500)
+                        updateInfo(false);
                     });
                 }
                 else {

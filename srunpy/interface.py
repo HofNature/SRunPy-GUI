@@ -395,9 +395,14 @@ class GUIBackend():
         except:
             return False
 
-    def get_online_data(self):
+    def get_online_data(self,hope=None):
         try:
-            return self.srun.is_connected()
+            for i in range(5):
+                is_available, is_online, data = self.srun.is_connected()
+                if hope is None or is_online == hope:
+                    break
+                time.sleep(0.2)
+            return is_available, is_online, data
         except:
             return False, False, {}
 

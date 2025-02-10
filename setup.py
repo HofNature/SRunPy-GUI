@@ -21,7 +21,7 @@ setup(
                       "pycryptodome;platform_system=='Windows'"],
     extras_require={
         'qt': ["pywebview[qt]"],
-        'build': ["pywebview<5", "nuitka<2.5"],
+        'build': ["pywebview", "nuitka"],
     },
     python_requires=">=3.7",#, <3.13",
     url="https://github.com/HofNature/SRunPy-GUI",
@@ -49,6 +49,7 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Operating System :: OS Independent",
     ]
 )
