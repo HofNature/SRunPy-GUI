@@ -364,3 +364,16 @@ button:hover {
     text-align: center;
     flex-grow: 1;
 }
+
+#login-on::before {
+    content:"";
+    position: fixed;
+    background-image: url(https://gw.buaa.edu.cn/static/images/test/tips.gif);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.1;
+    width: 230px;
+    height: 120px;
+    right: 0;
+}
