@@ -11,6 +11,9 @@ import hmac
 import hashlib
 import math
 
+from requests.adapters import HTTPAdapter
+from urllib3.poolmanager import PoolManager
+
 from urllib.parse import urlparse, parse_qs
 
 def get_md5(password, token):
@@ -93,8 +96,22 @@ def get_xencode(msg, key):
         q = q - 1
     return lencode(pwd, False)
 
+class SourceIPAdapter(HTTPAdapter):
+    def __init__(self, source_ip, **kwargs):
+        self.source_address = (source_ip, 0)
+        super().__init__(**kwargs)
+
+    def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
+        pool_kwargs["source_address"] = self.source_address
+        self.poolmanager = PoolManager(num_pools=connections, maxsize=maxsize, block=block, **pool_kwargs)
+
+    def proxy_manager_for(self, proxy, **proxy_kwargs):
+        proxy_kwargs["source_address"] = self.source_address
+        return super().proxy_manager_for(proxy, **proxy_kwargs)
+
+
 class Srun_Py():
-    def __init__(self, srun_host='gw.buaa.edu.cn',host_ip='10.200.21.4'):
+    def __init__(self, srun_host='gw.buaa.edu.cn',host_ip='10.200.21.4', client_ip=None):
         self.srun_host = srun_host
         self.init_url = "https://{}".format(srun_host)
         self.get_ip_api = 'https://{}/cgi-bin/rad_user_info?callback=JQuery'.format(srun_host)
@@ -111,6 +128,12 @@ class Srun_Py():
         self.ac_id = '1'
         self.enc = "srun_bx1"
         self._ALPHA = "LVoJPiCN2R8G90yg+hmFHuacZ1OWMnrsSTXkYpUq/3dlbfKwv6xztjI7DeBE45QA"
+        self.client_ip = client_ip
+        self.session = requests.Session()
+        if self.client_ip:
+            adapter = SourceIPAdapter(self.client_ip)
+            self.session.mount('http://', adapter)
+            self.session.mount('https://', adapter)
 
     def get_base64(self,s):
         r = []
@@ -155,15 +178,15 @@ class Srun_Py():
 
     def init_getip(self):
         try:
-            res = requests.get(self.get_ip_api)
+            res = self.session.get(self.get_ip_api)
         except:
             try:
-                res = requests.get(self.get_ip_api_ip,headers=self.header,verify=False)
+                res = self.session.get(self.get_ip_api_ip,headers=self.header,verify=False)
             except:
                 try:
-                    res = requests.get(self.get_ip_api.replace('https','http',1))
+                    res = self.session.get(self.get_ip_api.replace('https','http',1))
                 except:
-                    res = requests.get(self.get_ip_api_ip.replace('https','http',1),headers=self.header,verify=False)
+                    res = self.session.get(self.get_ip_api_ip.replace('https','http',1),headers=self.header,verify=False)
         data = json.loads(res.text[res.text.find('(')+1:-1])
         ip = data.get('client_ip') or data.get('online_ip')
         username = data.get('user_name')
@@ -176,32 +199,31 @@ class Srun_Py():
             "ip": ip,
             "_": int(time.time() * 1000),
         }
-        test = requests.Session()
         try:
-            get_challenge_res = test.get(self.get_challenge_api, params=get_challenge_params, headers=self.header)
+            get_challenge_res = self.session.get(self.get_challenge_api, params=get_challenge_params, headers=self.header)
         except:
             try:
-                get_challenge_res = test.get(self.get_challenge_api_ip, params=get_challenge_params, headers=self.header,verify=False)
+                get_challenge_res = self.session.get(self.get_challenge_api_ip, params=get_challenge_params, headers=self.header,verify=False)
             except:
                 try:
-                    get_challenge_res = test.get(self.get_challenge_api.replace('https','http',1), params=get_challenge_params, headers=self.header)
+                    get_challenge_res = self.session.get(self.get_challenge_api.replace('https','http',1), params=get_challenge_params, headers=self.header)
                 except:
-                    get_challenge_res = test.get(self.get_challenge_api_ip.replace('https','http',1), params=get_challenge_params, headers=self.header,verify=False)
+                    get_challenge_res = self.session.get(self.get_challenge_api_ip.replace('https','http',1), params=get_challenge_params, headers=self.header,verify=False)
         token = re.search('"challenge":"(.*?)"', get_challenge_res.text).group(1)
         return token
 
     def is_connected(self):
         try:
             try:
-                res = requests.get(self.get_ip_api)
+                res = self.session.get(self.get_ip_api)
             except:
                 try:
-                    res = requests.get(self.get_ip_api_ip,headers=self.header,verify=False)
+                    res = self.session.get(self.get_ip_api_ip,headers=self.header,verify=False)
                 except:
                     try:
-                        res = requests.get(self.get_ip_api.replace('https','http',1))
+                        res = self.session.get(self.get_ip_api.replace('https','http',1))
                     except:
-                        res = requests.get(self.get_ip_api_ip.replace('https','http',1),headers=self.header,verify=False)
+                        res = self.session.get(self.get_ip_api_ip.replace('https','http',1),headers=self.header,verify=False)
             data = json.loads(res.text[res.text.find('(')+1:-1])
             if 'error' in data and data['error']=='not_online_error':
                 return True, False, data
@@ -218,7 +240,7 @@ class Srun_Py():
         return i, hmd5, chksum
 
     def update_acid(self):
-        response = requests.get(url=self.init_url.replace('https','http',1), allow_redirects=True)
+        response = self.session.get(url=self.init_url.replace('https','http',1), allow_redirects=True)
         parsed_url = urlparse(response.url)
         query_params = parse_qs(parsed_url.query)
         if 'ac_id' in query_params and len(query_params['ac_id']) > 0:
@@ -249,17 +271,16 @@ class Srun_Py():
             'double_stack': '0',
             '_': int(time.time() * 1000)
         }
-        test = requests.Session()
         try:
-            srun_portal_res = test.get(self.srun_portal_api, params=srun_portal_params, headers=self.header)
+            srun_portal_res = self.session.get(self.srun_portal_api, params=srun_portal_params, headers=self.header)
         except:
             try:
-                srun_portal_res = test.get(self.srun_portal_api_ip, params=srun_portal_params, headers=self.header,verify=False)
+                srun_portal_res = self.session.get(self.srun_portal_api_ip, params=srun_portal_params, headers=self.header,verify=False)
             except:
                 try:
-                    srun_portal_res = test.get(self.srun_portal_api.replace('https','http',1), params=srun_portal_params, headers=self.header)
+                    srun_portal_res = self.session.get(self.srun_portal_api.replace('https','http',1), params=srun_portal_params, headers=self.header)
                 except:
-                    srun_portal_res = test.get(self.srun_portal_api_ip.replace('https','http',1), params=srun_portal_params, headers=self.header,verify=False)
+                    srun_portal_res = self.session.get(self.srun_portal_api_ip.replace('https','http',1), params=srun_portal_params, headers=self.header,verify=False)
         srun_portal_res = srun_portal_res.text
         data = json.loads(srun_portal_res[srun_portal_res.find('(')+1:-1])
         return data.get('error') == 'ok'
@@ -278,16 +299,15 @@ class Srun_Py():
             'unbind': 0,
             'sign': sign
         }
-        test = requests.Session()
         try:
-            user_dm_res = test.get(self.rad_user_dm_api, params=user_dm_params, headers=self.header)
+            user_dm_res = self.session.get(self.rad_user_dm_api, params=user_dm_params, headers=self.header)
         except:
             try:
-                user_dm_res = test.get(self.rad_user_dm_api_ip, params=user_dm_params, headers=self.header,verify=False)
+                user_dm_res = self.session.get(self.rad_user_dm_api_ip, params=user_dm_params, headers=self.header,verify=False)
             except:
                 try:
-                    user_dm_res = test.get(self.rad_user_dm_api.replace('https','http',1), params=user_dm_params, headers=self.header)
+                    user_dm_res = self.session.get(self.rad_user_dm_api.replace('https','http',1), params=user_dm_params, headers=self.header)
                 except:
-                    user_dm_res = test.get(self.rad_user_dm_api_ip.replace('https','http',1), params=user_dm_params, headers=self.header,verify=False)
+                    user_dm_res = self.session.get(self.rad_user_dm_api_ip.replace('https','http',1), params=user_dm_params, headers=self.header,verify=False)
         user_dm_res = user_dm_res.text
         return user_dm_res=='logout_ok'

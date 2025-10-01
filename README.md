@@ -8,6 +8,7 @@
 2. 开机自动启动
 3. 掉线自动重连
 4. 从命令行操作
+5. 多网卡IP切换
 
 ### 界面展示
 
@@ -62,7 +63,7 @@ python srun_client.py
 ```
 
 > **备注**:  
-本程序默认设置为北航网关，其它使用深澜网页认证的用户可以点击界面左侧的设置按钮修改为自己学校的认证地址。  
+本程序默认设置为北航网关，其它使用深澜网页认证的用户可以点击界面左侧的设置按钮修改为自己学校的认证地址。若设备有多个网口，可在“本机IP地址”中勾选需要绑定的网卡IP并选择当前线路。  
 配置文件位于C:\Users\<用户名>\AppData\Roaming\SRunPy，其中的`config.json`文件保存了用户的账号密码等信息。
 
 ### 命令行使用说明
@@ -87,6 +88,20 @@ python srun_client.py
 ```sh
 srunpy-cli --login --username <你的用户名> --passwd <你的密码> --gateway <网关地址>
 ```
+
+你可以使用 `--list-ips` 查看当前设备可绑定的本地IP地址：
+
+```sh
+srunpy-cli --list-ips
+```
+
+登录、登出或查询状态时，可通过重复指定 `--local-ip`（或用逗号分隔的列表）来针对多个本地IP执行操作，例如：
+
+```sh
+srunpy-cli --login --username <你的用户名> --passwd <你的密码> --local-ip 10.1.1.7 --local-ip 10.1.1.8
+```
+
+如果未指定 `--local-ip`，默认使用操作系统的自动选择策略。
 
 ### TODO
 
@@ -114,6 +129,7 @@ srunpy-cli --login --username <你的用户名> --passwd <你的密码> --gatewa
 2. Auto start on boot
 3. Auto reconnect on disconnection
 4. Operate from command line
+5. Multi-NIC IP switching
 
 ### Interface Display
 
@@ -168,7 +184,9 @@ python srun_client.py
 ```
 
 > **Note**:  
-This program is set to the Beihang University gateway by default. Other users using Srun web authentication can click the settings button on the left side of the interface to change to their school's authentication address.  
+This program is configured for the Beihang University gateway by default. Users connecting to other Srun gateways can click the settings button on the left side of the UI to update the authentication address.
+If the device has multiple network interfaces, you can check the desired network interface IPs in the "Local IP addresses" section
+
 The configuration file is located at C:\Users\<username>\AppData\Roaming\SRunPy, where the `config.json` file saves the user's account and password information.
 
 ### Command Line Usage Instructions
@@ -193,6 +211,20 @@ You can specify the gateway address, for example:
 ```sh
 srunpy-cli --login --username <your username> --passwd <your password> --gateway <gateway address>
 ```
+
+You can list available local IP addresses with:
+
+```sh
+srunpy-cli --list-ips
+```
+
+When running `--info`, `--login`, or `--logout`, repeat `--local-ip` (or provide a comma-separated list) to operate on multiple local interfaces, for example:
+
+```sh
+srunpy-cli --login --username <your username> --passwd <your password> --local-ip 10.1.1.7 --local-ip 10.1.1.8
+```
+
+If `--local-ip` is omitted, the default OS routing strategy is used.
 
 ### TODO
 

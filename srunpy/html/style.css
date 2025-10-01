@@ -39,13 +39,15 @@ body {
 }
 
 div#alert-mask,
-div#input-mask {
+div#input-mask,
+div#settings-mask {
     position: fixed;
     left: 0;
     right: 0;
     top: 0;
     bottom: 0;
     background: #0003;
+    -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
     z-index: 2048;
     transition: 0.5s;
@@ -54,7 +56,8 @@ div#input-mask {
 }
 
 .alert-content,
-.input-content {
+.input-content,
+.settings-content {
     width: 256px;
     height: 128px;
     left: calc(50% - 128px - 32px - 5px);
@@ -158,6 +161,29 @@ input#input-input {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+}
+
+.ip-selector-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.ip-selector-bar span {
+    font-size: 14px;
+    color: #444;
+    white-space: nowrap;
+}
+
+.ip-selector-bar select {
+    flex-grow: 1;
+    height: 30px;
+    border-radius: 100px;
+    border: 2px solid #0003;
+    box-shadow: 1px 1px 5px 1px #0001;
+    padding: 0 12px;
+    background: #fff;
 }
 
 .settings-bar {
@@ -277,6 +303,87 @@ div#login-on {
     display: flex;
     flex-direction: column;
     position: relative;
+}
+
+.settings-content {
+    width: 360px;
+    min-height: 360px;
+    padding: 24px;
+}
+
+.settings-content>img {
+    height: 32px;
+    width: 32px;
+    padding-left: calc(50% - 16px);
+}
+
+.settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.settings-section span {
+    font-size: 14px;
+    color: #555;
+}
+
+.settings-section input {
+    text-align: left;
+    padding: 0 14px;
+}
+
+.settings-ips-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#settings-ip-list {
+    margin-top: 8px;
+    max-height: 160px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 8px;
+    background: #fafafa;
+}
+
+.settings-ip-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.settings-ip-item:last-child {
+    margin-bottom: 0;
+}
+
+.settings-ip-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-ip-radio-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #666;
+}
+
+.settings-actions {
+    margin-top: 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.settings-actions button {
+    width: 90px;
 }
 
 

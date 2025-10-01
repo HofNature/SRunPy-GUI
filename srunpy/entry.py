@@ -1,6 +1,7 @@
 import argparse
 import json
 import platform
+from srunpy.ip_utils import get_local_ipv4_addresses
 
 def Cli():
     from srunpy import SrunClient,  __version__
@@ -11,7 +12,42 @@ def Cli():
     parser.add_argument('-u', '--username', default=None, help='登录用户名 Username')
     parser.add_argument('-p', '--passwd', default=None, help='登录密码 Password')
     parser.add_argument('-g', '--gateway', default=None, help='网关地址 Gateway')
+    parser.add_argument('-L', '--local-ip', dest='local_ips', action='append', help='指定本机IP地址，可多次使用指定多个IP，可使用逗号分隔多个地址')
+    parser.add_argument('--list-ips', action='store_true', help='列出本机可用IP地址 List local IP addresses')
     args = parser.parse_args()
+
+    if args.list_ips:
+        ips = get_local_ipv4_addresses()
+        print('本机可用IP地址 Local IP addresses:')
+        if not ips:
+            print('  (未检测到非回环IPv4地址 No non-loopback IPv4 detected)')
+        else:
+            for ip in ips:
+                print('  -', ip)
+        return
+
+    available_ips = set(get_local_ipv4_addresses())
+    selected_ips = []
+    if args.local_ips:
+        for item in args.local_ips:
+            if item is None:
+                continue
+            for ip in item.split(','):
+                ip = ip.strip()
+                if not ip:
+                    continue
+                if ip.lower() in {'auto', 'default'}:
+                    selected_ips.append(None)
+                    continue
+                if ip in available_ips:
+                    selected_ips.append(ip)
+                else:
+                    print(f'警告: IP地址 {ip} 未在本机检测到，已跳过 Warning: IP {ip} not found locally, skipped')
+    if not selected_ips:
+        selected_ips = [None]
+    else:
+        # 保持用户选择顺序，同时去除重复
+        selected_ips = list(dict.fromkeys(selected_ips))
     mode=None
     if args.info:
         mode = 'info'
@@ -36,17 +72,25 @@ def Cli():
         else:
             print('未知操作! Unknown operation!')
     if mode is not None:
-        if args.gateway is not None:
-            srun_client = SrunClient(srun_host=args.gateway,host_ip=args.gateway)
-        else:
-            srun_client = SrunClient()
+        def build_client(bind_ip):
+            if args.gateway is not None:
+                return SrunClient(srun_host=args.gateway, host_ip=args.gateway, client_ip=bind_ip)
+            return SrunClient(client_ip=bind_ip)
+
         if mode == 'info':
-            is_available, is_online, online_data = srun_client.is_connected()
-            print('网络是否可用 Available:', is_available)
-            print('是否已登录 Online:', is_online)
-            if is_online:
-                print('在线信息 Online data:')
-                print(json.dumps(online_data, indent=4, ensure_ascii=False))
+            for bind_ip in selected_ips:
+                label = bind_ip if bind_ip is not None else '默认(Default)'
+                print('\n=== IP:', label, '===')
+                try:
+                    client = build_client(bind_ip)
+                    is_available, is_online, online_data = client.is_connected()
+                    print('网络是否可用 Available:', is_available)
+                    print('是否已登录 Online:', is_online)
+                    if is_online:
+                        print('在线信息 Online data:')
+                        print(json.dumps(online_data, indent=4, ensure_ascii=False))
+                except Exception as exc:
+                    print('查询失败 Failed to fetch status:', exc)
         elif mode == 'login':
             if args.username is None:
                 username = input('请输入用户名 Username:')
@@ -57,10 +101,25 @@ def Cli():
                 passwd = getpass.getpass('请输入密码 Password:')
             else:
                 passwd = args.passwd
-            srun_client.login(username, passwd)
+            for bind_ip in selected_ips:
+                label = bind_ip if bind_ip is not None else '默认(Default)'
+                print('\n=== IP:', label, '===')
+                try:
+                    client = build_client(bind_ip)
+                    client.login(username, passwd)
+                    print('登录成功 Login succeeded')
+                except Exception as exc:
+                    print('登录失败 Login failed:', exc)
         elif mode == 'logout':
-            srun_client.logout()
-
+            for bind_ip in selected_ips:
+                label = bind_ip if bind_ip is not None else '默认(Default)'
+                print('\n=== IP:', label, '===')
+                try:
+                    client = build_client(bind_ip)
+                    client.logout()
+                    print('注销成功 Logout succeeded')
+                except Exception as exc:
+                    print('注销失败 Logout failed:', exc)
 def Gui(aes_key=None):
     if platform.system() != 'Windows':
         print('此命令仅支持Windows系统 This command is only supported on Windows system')

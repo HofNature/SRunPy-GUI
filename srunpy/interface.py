@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from srunpy import SrunClient, PROGRAM_VERSION, WebRoot
+from srunpy.ip_utils import get_local_ipv4_addresses
 
 import os
 import sys
@@ -21,6 +22,10 @@ import win32con
 import win32api
 import win32com.client as client
 from win10toast import ToastNotifier
+import ctypes
+import win32gui
+import platform
+import uuid
 
 def is_ip_address(address):
     try:
@@ -99,6 +104,8 @@ def load_config(aes_key):
             "sleeptime": 5,
             "auto_login": False,
             "start_with_windows": False,
+            "local_ips": [],
+            "active_ip": None,
         }
         with open(config_path, 'w') as f:
             f.write(json.dumps(config, indent=4, ensure_ascii=True))
@@ -109,6 +116,8 @@ def load_config(aes_key):
             config['password'] = aes.decode_aes(config['password'].encode())
         if not config.get('pass_correct'):
             config['auto_login'] = False
+        config.setdefault('local_ips', [])
+        config.setdefault('active_ip', None)
     return config
 
 def reset_config():
@@ -233,6 +242,8 @@ class GUIBackend():
         self.aes_key = aes_key
         self.qt_backend = use_qt
         self.auto_login_thread = None
+        self.srun_clients = {}
+        self.active_ip = None
         self.isUptoDate = False
         self.hasDoneUpdate = False
         def check_update():
@@ -261,15 +272,16 @@ class GUIBackend():
             self.sleeptime = self.config['sleeptime']
             self.auto_login = self.config['auto_login']
             self.start_with_windows = self.config['start_with_windows']
+            self.local_ips = self.config.get('local_ips', [])
+            self.active_ip = self.config.get('active_ip')
         except Exception as e:
             print(str(e))
             reset_config()
             self.refresh_config()
             return
-        if self.srun_host == "":
-            self.srun = SrunClient(self.host_ip, self.host_ip)
-        else:
-            self.srun = SrunClient(self.srun_host, self.host_ip)
+        self._rebuild_clients()
+        self._ensure_active_ip()
+        self.srun = self.get_client()
         if self.start_with_windows:
             create_lnk(qt_backend=self.qt_backend)
         else:
@@ -279,6 +291,95 @@ class GUIBackend():
                 self.auto_login_thread = threading.Thread(
                     target=self.auto_login_deamon)
                 self.auto_login_thread.start()
+
+    def _create_client(self, client_ip):
+        if self.srun_host == "":
+            return SrunClient(self.host_ip, self.host_ip, client_ip=client_ip)
+        return SrunClient(self.srun_host, self.host_ip, client_ip=client_ip)
+
+    def _rebuild_clients(self):
+        self.srun_clients = {}
+        ip_list = []
+        seen = set()
+
+        def append_ip(value):
+            if value not in seen:
+                ip_list.append(value)
+                seen.add(value)
+
+        append_ip(None)
+        if self.local_ips:
+            for ip in self.local_ips:
+                append_ip(ip)
+        if not ip_list:
+            ip_list = [None]
+        for ip in ip_list:
+            try:
+                self.srun_clients[ip] = self._create_client(ip)
+            except Exception as exc:
+                print(f"初始化IP {ip or '默认'} 失败: {exc}")
+        if not self.srun_clients:
+            self.srun_clients[None] = self._create_client(None)
+
+    def _ensure_active_ip(self):
+        if not self.srun_clients:
+            self.active_ip = None
+            return
+        if self.active_ip not in self.srun_clients:
+            self.active_ip = next(iter(self.srun_clients.keys()))
+            self.config['active_ip'] = self.active_ip
+            save_config(self.config,self.aes_key)
+
+    def get_client(self, ip=None):
+        if not self.srun_clients:
+            return None
+        if ip in self.srun_clients:
+            return self.srun_clients[ip]
+        if ip is None and None in self.srun_clients:
+            return self.srun_clients[None]
+        if self.active_ip in self.srun_clients:
+            return self.srun_clients[self.active_ip]
+        return next(iter(self.srun_clients.values()))
+
+    def _update_gateway_only(self, srun_host, self_service):
+        domain, ip_addr = is_domain(srun_host)
+        if domain:
+            self.config['srun_host'] = srun_host
+            self.config['host_ip'] = ip_addr
+        elif is_ip_address(srun_host):
+            self.config['srun_host'] = ""
+            self.config['host_ip'] = srun_host
+        else:
+            return False
+        self.config['self_service'] = self_service
+        return True
+
+    def _update_local_ip_selection(self, selected_ips, active_ip):
+        if selected_ips is None:
+            return
+        normalized = []
+        available = set(get_local_ipv4_addresses())
+        for ip in selected_ips:
+            if ip in (None, "", "null"):
+                normalized.append(None)
+            elif ip in available:
+                normalized.append(ip)
+        if normalized:
+            ordered = []
+            for ip in normalized:
+                if ip not in ordered:
+                    ordered.append(ip)
+            normalized = ordered
+        else:
+            normalized = []
+        self.config['local_ips'] = normalized
+        if normalized:
+            if active_ip in normalized:
+                self.config['active_ip'] = active_ip
+            else:
+                self.config['active_ip'] = normalized[0]
+        else:
+            self.config['active_ip'] = None
 
     def set_config(self, username, password):
         if username != "" and username != self.config['username']:
@@ -307,16 +408,57 @@ class GUIBackend():
             self.refresh_config()
             return True
 
+    def set_active_client_ip(self, ip):
+        target = ip if ip not in (None, "", "null") else None
+        if target not in self.srun_clients:
+            return False
+        self.active_ip = target
+        self.config['active_ip'] = target
+        save_config(self.config,self.aes_key)
+        self.srun = self.get_client()
+        return True
+
     def get_config(self):
-        return self.username, self.password != "", self.auto_login, self.start_with_windows, self.isUptoDate, self.hasDoneUpdate, self.srun_host if self.srun_host != "" else self.host_ip, self.self_service
+        return (
+            self.username,
+            self.password != "",
+            self.auto_login,
+            self.start_with_windows,
+            self.isUptoDate,
+            self.hasDoneUpdate,
+            self.srun_host if self.srun_host != "" else self.host_ip,
+            self.self_service,
+            self.active_ip,
+            self.local_ips,
+        )
+
+    def get_ip_settings(self):
+        return {
+            "available": get_local_ipv4_addresses(),
+            "selected": self.local_ips,
+            "active": self.active_ip,
+            "gateway": self.srun_host if self.srun_host != "" else self.host_ip,
+            "self_service": self.self_service,
+        }
+
+    def update_ip_settings(self, settings):
+        gateway = settings.get('gateway', self.srun_host if self.srun_host != "" else self.host_ip)
+        self_service = settings.get('self_service', self.self_service)
+        selected = settings.get('selected')
+        active = settings.get('active')
+        return self.set_srun_host(gateway, self_service, selected, active)
     
     def do_update(self,open=False):
         if open:
             webbrowser.open("https://github.com/HofNature/SRunPy-GUI/releases/latest")
         self.hasDoneUpdate = True
 
-    def start_self_service(self):
-        is_available, is_online, data = self.srun.is_connected()
+    def start_self_service(self, ip=None):
+        client = self.get_client(ip)
+        if client is None:
+            webbrowser.open(f"http://{self.self_service}")
+            return
+        is_available, is_online, data = client.is_connected()
         if is_online:
             if "user_name" in data:
                 username = data["user_name"]
@@ -327,32 +469,23 @@ class GUIBackend():
         else:
             webbrowser.open(f"http://{self.self_service}")
 
-    def set_srun_host(self, srun_host, self_service):
-        # 判断地址是域名还是ip
-        domain, ip = is_domain(srun_host)
-        if domain:
-            self.config['srun_host'] = srun_host
-            self.config['host_ip'] = ip
-        elif is_ip_address(srun_host):
-            self.config['srun_host'] = ""
-            self.config['host_ip'] = srun_host
-        else:
+    def set_srun_host(self, srun_host, self_service, selected_ips=None, active_ip=None):
+        if not self._update_gateway_only(srun_host, self_service):
             return False
-        self.config['self_service'] = self_service
+        self._update_local_ip_selection(selected_ips, active_ip)
         save_config(self.config,self.aes_key)
         self.refresh_config()
-        del self.srun
-        if self.srun_host == "":
-            self.srun = SrunClient(self.host_ip, self.host_ip)
-        else:
-            self.srun = SrunClient(self.srun_host, self.host_ip)
         return True
     
     def auto_login_deamon(self):
         login_failed_count = 0
         while self.auto_login:
+            client = self.get_client()
+            if client is None:
+                time.sleep(self.sleeptime)
+                continue
             try:
-                is_available, is_online, _ = self.srun.is_connected()
+                is_available, is_online, _ = client.is_connected()
             except:
                 is_available, is_online = False, False
             if is_available and not is_online:
@@ -378,9 +511,12 @@ class GUIBackend():
             else:
                 break
 
-    def login(self):
+    def login(self, ip=None):
+        client = self.get_client(ip)
+        if client is None:
+            return False
         try:
-            success = self.srun.login(self.username, self.password)
+            success = client.login(self.username, self.password)
         except:
             success = False
         if success and not self.pass_correct:
@@ -389,16 +525,22 @@ class GUIBackend():
             self.refresh_config()
         return success
 
-    def logout(self):
+    def logout(self, ip=None):
+        client = self.get_client(ip)
+        if client is None:
+            return False
         try:
-            return self.srun.logout()
+            return client.logout()
         except:
             return False
 
-    def get_online_data(self,hope=None):
+    def get_online_data(self, ip=None, hope=None):
+        client = self.get_client(ip)
+        if client is None:
+            return False, False, {}
         try:
-            for i in range(5):
-                is_available, is_online, data = self.srun.is_connected()
+            for _ in range(5):
+                is_available, is_online, data = client.is_connected()
                 if hope is None or is_online == hope:
                     break
                 time.sleep(0.2)
@@ -425,11 +567,71 @@ class MainWindow():
         }
         self.window = webview.create_window(
             "校园网登陆器", os.path.join(WebRoot, "index.html"), width=400, height=300, resizable=False)
-        self.window.expose(self.srunpy.get_online_data, self.srunpy.login, self.srunpy.logout, self.srunpy.set_config,
-                           self.srunpy.get_config, webbrowser_open, exit_application, self.srunpy.set_start_with_windows, self.srunpy.set_auto_login, self.srunpy.do_update,self.srunpy.start_self_service,self.srunpy.set_srun_host)
+        self.window.expose(
+            self.srunpy.get_online_data,
+            self.srunpy.login,
+            self.srunpy.logout,
+            self.srunpy.set_config,
+            self.srunpy.get_config,
+            webbrowser_open,
+            exit_application,
+            self.srunpy.set_start_with_windows,
+            self.srunpy.set_auto_login,
+            self.srunpy.do_update,
+            self.srunpy.start_self_service,
+            self.srunpy.set_srun_host,
+            self.srunpy.get_ip_settings,
+            self.srunpy.update_ip_settings,
+            self.srunpy.set_active_client_ip,
+        )
+        def after_window_created():
+            if platform.system() == "Windows":
+                # Ensure process is DPI aware so we can get the real DPI
+                try:
+                    ctypes.windll.user32.SetProcessDPIAware()
+                except Exception:
+                    pass
+
+                # wait briefly for the window to appear and get its HWND by title
+                hwnd = None
+                random_title = uuid.uuid4().hex
+                self.window.set_title(random_title)
+                for _ in range(20):
+                    hwnd = win32gui.FindWindow(None, random_title)
+                    if hwnd:
+                        break
+                    time.sleep(0.05)
+                self.window.set_title("校园网登陆器")
+                if hwnd:
+                    # get DPI for the window (fall back to screen DPI)
+                    try:
+                        user32 = ctypes.windll.user32
+                        get_dpi = getattr(user32, "GetDpiForWindow", None)
+                        if get_dpi:
+                            dpi = get_dpi(hwnd)
+                        else:
+                            # fallback: get device DPI
+                            gdi32 = ctypes.windll.gdi32
+                            hdc = user32.GetDC(0)
+                            LOGPIXELSX = 88
+                            dpi = gdi32.GetDeviceCaps(hdc, LOGPIXELSX)
+                            user32.ReleaseDC(0, hdc)
+                    except Exception:
+                        dpi = 96
+
+                    scale = float(dpi) / 96.0
+
+                    # original logical size used when creating the window
+                    logical_w, logical_h = 400, 300
+                    new_w = int(logical_w * scale)
+                    new_h = int(logical_h * scale)
+
+                    # keep current position, only resize
+                    left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+                    win32gui.SetWindowPos(hwnd, None, left, top, new_w, new_h, win32con.SWP_NOZORDER)
+                    
+            self.window.evaluate_js('updateInfo()')
         if self.srunpy.qt_backend:
-            webview.start(lambda: self.window.evaluate_js(
-                'updateInfo()'), localization=localization, debug=False, gui='qt', icon=self.icon_path)
+            webview.start(after_window_created, localization=localization, debug=False, gui='qt', icon=self.icon_path)
         else:
-            webview.start(lambda: self.window.evaluate_js(
-                'updateInfo()'), localization=localization, debug=False)
+            webview.start(after_window_created, localization=localization, debug=True)
