@@ -397,7 +397,6 @@ class TaskbarIcon:
         os._exit(0)
 
 
-
 class GUIBackend:
     """
     Backend logic for the GUI application.
@@ -612,8 +611,9 @@ class GUIBackend:
         self.config['self_service'] = self_service
         return True
 
-    def _update_local_ip_selection(self, selected_ips: Optional[List[Optional[str]]],
-                                    active_ip: Optional[str]) -> None:
+    def _update_local_ip_selection(
+            self, selected_ips: Optional[List[Optional[str]]],
+            active_ip: Optional[str]) -> None:
         """
         Update local IP selection in configuration.
         更新配置中的本地 IP 选择。
@@ -868,6 +868,7 @@ class GUIBackend:
         active = settings.get('active')
         return self.set_srun_host(gateway, self_service, selected, active)
 
+
     def do_update(self, start: bool = False) -> bool:
         """
         Perform software update.
@@ -1011,10 +1012,10 @@ class GUIBackend:
                 time.sleep(self.sleeptime)
                 continue
 
-            for key, client in self.srun_clients.items():
+            for key, srun_client in self.srun_clients.items():
                 key_str = f"IP {key} " if key is not None else ""
                 try:
-                    is_available, is_online, _ = client.is_connected()
+                    is_available, is_online, _ = srun_client.is_connected()
                 except Exception:
                     is_available, is_online = False, False
 
@@ -1131,7 +1132,6 @@ class GUIBackend:
             return is_available, is_online, data
         except Exception:
             return False, False, {}
-
 
 
 class MainWindow:

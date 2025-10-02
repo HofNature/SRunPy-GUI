@@ -389,7 +389,10 @@ class Srun_Py:
             Authentication token / 认证令牌
         """
         get_challenge_params = {
-            "callback": "jQuery112404953340710317169_" + str(int(time.time() * 1000)),
+            "callback": (
+                "jQuery112404953340710317169_" +
+                str(int(time.time() * 1000))
+            ),
             "username": username,
             "ip": ip,
             "_": int(time.time() * 1000),
