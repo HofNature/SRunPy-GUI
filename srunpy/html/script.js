@@ -164,7 +164,11 @@ function handleIpSelectionChange(event) {
 
 function do_Update() {
     if (hasUpdate) {
-        showConfirmAlert('检查到更新，立即下载吗？', () => { window.pywebview.api.do_update(true) });
+        showConfirmAlert('检查到更新，立即下载吗？', () => { 
+            if (!window.pywebview.api.do_update(true)) {
+                showAlert("更新失败！请手动下载最新版本。");
+            }
+        });
     }
     else {
         showConfirmAlert('深澜网关第三方客户端',()=>{window.pywebview.api.webbrowser_open("https://github.com/HofNature/SRunPy-GUI")}, "icons/github.png");

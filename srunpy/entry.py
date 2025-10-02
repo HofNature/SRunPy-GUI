@@ -16,16 +16,31 @@ def Cli():
     parser.add_argument('--list-ips', action='store_true', help='列出本机可用IP地址 List local IP addresses')
     args = parser.parse_args()
 
-    if args.list_ips:
+    def build_client(bind_ip):
+        if args.gateway is not None:
+            return SrunClient(srun_host=args.gateway, host_ip=args.gateway, client_ip=bind_ip)
+        return SrunClient(client_ip=bind_ip)
+    
+    def list_ips():
         ips = get_local_ipv4_addresses()
         print('本机可用IP地址 Local IP addresses:')
         if not ips:
             print('  (未检测到非回环IPv4地址 No non-loopback IPv4 detected)')
         else:
             for ip in ips:
-                print('  -', ip)
-        return
-
+                client = build_client(ip)
+                is_available, is_online, online_data = client.is_connected()
+                showstr = f'  - {ip} '
+                if is_available:
+                    showstr += '(网关可用 Available, '
+                    if is_online:
+                        showstr += '已登录 Online)'
+                    else:
+                        showstr += '未登录 Offline)'
+                else:
+                    showstr += '(网关不可用 Unavailable)'
+                print(showstr)
+    
     available_ips = set(get_local_ipv4_addresses())
     selected_ips = []
     if args.local_ips:
@@ -55,13 +70,17 @@ def Cli():
         mode = 'login'
     elif args.logout:
         mode = 'logout'
+    elif args.list_ips:
+        mode = 'list_ips'
     if mode is None:
         print('深澜网关登录器(第三方) 命令行 v'+__version__)
         print('SrunClient (Third-party) Command Line v'+__version__)
         print('如需设置网关地址,请使用-g参数 Use -g parameter to set gateway address')
+        print('如需指定本机IP地址,请使用-L参数 Use -L parameter to specify local IP address')
         print('1. 判断登录状态 Check login status')
         print('2. 登录账号 Login account')
         print('3. 登出账号 Logout account')
+        print('4. 列出本机IP地址 List local IP addresses')
         command = input('请输入命令 Enter command:')
         if command == '1':
             mode = 'info'
@@ -69,14 +88,11 @@ def Cli():
             mode = 'login'
         elif command == '3':
             mode = 'logout'
+        elif command == '4':
+            mode = 'list_ips'
         else:
             print('未知操作! Unknown operation!')
     if mode is not None:
-        def build_client(bind_ip):
-            if args.gateway is not None:
-                return SrunClient(srun_host=args.gateway, host_ip=args.gateway, client_ip=bind_ip)
-            return SrunClient(client_ip=bind_ip)
-
         if mode == 'info':
             for bind_ip in selected_ips:
                 label = bind_ip if bind_ip is not None else '默认(Default)'
@@ -120,6 +136,8 @@ def Cli():
                     print('注销成功 Logout succeeded')
                 except Exception as exc:
                     print('注销失败 Logout failed:', exc)
+        elif mode == 'list_ips':
+            list_ips()
 def Gui(aes_key=None):
     if platform.system() != 'Windows':
         print('此命令仅支持Windows系统 This command is only supported on Windows system')

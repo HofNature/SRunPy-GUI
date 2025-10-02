@@ -230,7 +230,7 @@ class Srun_Py():
             else:
                 return True, True, data
         except:
-            return False, False
+            return False, False, None
 
     def do_complex_work(self,username,password,ip,token):
         i = self.get_info(username,password,ip)

@@ -63,7 +63,6 @@ def exit_application():
 def webbrowser_open(url):
     webbrowser.open(url)
 
-
 def get_Color_Mode():
     # coding:utf-8
     reg_root = win32con.HKEY_CURRENT_USER
@@ -526,8 +525,35 @@ class GUIBackend():
     
     def do_update(self,open=False):
         if open:
-            webbrowser.open("https://github.com/HofNature/SRunPy-GUI/releases/latest")
+            executable_path = os.path.abspath(sys.executable)
+            arguments = sys.argv
+            if "--no-auto-open" in arguments:
+                arguments.remove("--no-auto-open")
+            if executable_path.endswith('pythonw.exe'):
+                executable_path = os.path.join(os.path.dirname(executable_path),'python.exe')
+            try:
+                import pip
+            except ImportError:
+                pip = None
+            if os.path.exists(executable_path) and executable_path.endswith('python.exe') and pip is not None:
+                try:
+                    subprocess.check_call([executable_path, '-m', 'pip', 'install', '--upgrade', 'srunpy'])
+                    # Spawn the new process without leaking file descriptors by
+                    # redirecting stdio and enabling close_fds.
+                    subprocess.Popen([executable_path] + arguments,
+                                     stdout=subprocess.DEVNULL,
+                                     stderr=subprocess.DEVNULL,
+                                     stdin=subprocess.DEVNULL,
+                                     close_fds=True)
+                    return True
+                except:
+                    webbrowser.open("https://github.com/HofNature/SRunPy-GUI/releases/latest")
+                    return False
+            else:
+                webbrowser.open("https://github.com/HofNature/SRunPy-GUI/releases/latest")
+                return True
         self.hasDoneUpdate = True
+        return True
 
     def start_self_service(self, ip=None):
         client = self.get_client(ip)
