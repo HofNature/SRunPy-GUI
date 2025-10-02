@@ -128,24 +128,37 @@
     <div id="settings-mask">
         <div class="settings-content">
             <img src="icons/setting.png" alt="设置">
-            <div class="settings-section">
-                <span>深澜网关</span>
-                <input id="settings-gateway" placeholder="例如 gw.buaa.edu.cn" aria-label="深澜网关">
-            </div>
-            <div class="settings-section">
-                <span>自服务地址</span>
-                <input id="settings-self-service" placeholder="例如 zfw.buaa.edu.cn" aria-label="自服务地址">
-            </div>
-            <div class="settings-section">
-                <div class="settings-ips-header">
-                    <span>本机IP地址</span>
-                    <button onclick="refreshSettingsIps()">刷新</button>
+            <div id="settings-step-gateway" class="settings-step">
+                <div class="settings-section">
+                    <span>深澜网关</span>
+                    <input id="settings-gateway" placeholder="例如 gw.buaa.edu.cn" aria-label="深澜网关">
                 </div>
-                <div id="settings-ip-list"></div>
+                <div class="settings-section">
+                    <span>自服务地址</span>
+                    <input id="settings-self-service" placeholder="例如 zfw.buaa.edu.cn" aria-label="自服务地址">
+                </div>
+                <div class="settings-section">
+                    <span>连通性检查</span>
+                    <div id="settings-probe-status" class="settings-probe-status-text">请填写网关后下一步进行检查。</div>
+                    <div id="settings-probe-results" class="settings-probe-results"></div>
+                </div>
+            </div>
+            <div id="settings-step-ip" class="settings-step">
+                <div class="settings-section">
+                    <div class="settings-ips-header">
+                        <span>选择可用IP</span>
+                        <button id="settings-confirm-ips" onclick="refreshSettingsIps()">重新检查</button>
+                    </div>
+                    <div id="settings-ip-list"></div>
+                    <div id="settings-ip-note" class="settings-ip-note"></div>
+                </div>
             </div>
             <div class="settings-actions">
-                <button onclick="saveSettings()">保存</button>
-                <button onclick="closeSettings()">取消</button>
+                <button id="settings-action-next" onclick="proceedSettingsStep()">下一步</button>
+                <button id="settings-action-save" class="hidden" onclick="saveSettings()">保存</button>
+                <button id="settings-action-refresh" class="hidden" onclick="refreshSettingsIps()">刷新结果</button>
+                <button id="settings-action-back" class="hidden" onclick="goBackToGatewayStep()">上一步</button>
+                <button onclick="closeSettings()">关闭</button>
             </div>
         </div>
     </div>

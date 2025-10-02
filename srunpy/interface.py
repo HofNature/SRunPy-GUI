@@ -341,16 +341,25 @@ class GUIBackend():
             return self.srun_clients[self.active_ip]
         return next(iter(self.srun_clients.values()))
 
+    def _parse_gateway(self, gateway):
+        target = gateway.strip() if gateway else ""
+        if not target:
+            # fall back to current configuration
+            return self.srun_host, self.host_ip
+        if is_ip_address(target):
+            return "", target
+        is_dom, resolved_ip = is_domain(target)
+        if is_dom and resolved_ip:
+            return target, resolved_ip
+        raise ValueError("无法解析网关地址，请检查输入")
+
     def _update_gateway_only(self, srun_host, self_service):
-        domain, ip_addr = is_domain(srun_host)
-        if domain:
-            self.config['srun_host'] = srun_host
-            self.config['host_ip'] = ip_addr
-        elif is_ip_address(srun_host):
-            self.config['srun_host'] = ""
-            self.config['host_ip'] = srun_host
-        else:
+        try:
+            resolved_host, resolved_ip = self._parse_gateway(srun_host)
+        except ValueError:
             return False
+        self.config['srun_host'] = resolved_host
+        self.config['host_ip'] = resolved_ip
         self.config['self_service'] = self_service
         return True
 
@@ -380,6 +389,73 @@ class GUIBackend():
                 self.config['active_ip'] = normalized[0]
         else:
             self.config['active_ip'] = None
+
+    def probe_gateway_ips(self, gateway, self_service=None):
+        try:
+            resolved_host, resolved_ip = self._parse_gateway(gateway)
+        except ValueError as exc:
+            return {
+                "ok": False,
+                "error": str(exc),
+                "results": [],
+            }
+        if not resolved_ip:
+            return {
+                "ok": False,
+                "error": "无法解析网关地址，请检查输入",
+                "results": [],
+            }
+        candidates = [None] + get_local_ipv4_addresses()
+        results = []
+        reachable_count = 0
+        for ip in candidates:
+            token = None if ip is None else ip
+            try:
+                client = SrunClient(
+                    resolved_host if resolved_host != "" else resolved_ip,
+                    resolved_ip,
+                    client_ip=ip,
+                )
+                connectivity = client.is_connected()
+                if isinstance(connectivity, tuple):
+                    is_available = bool(connectivity[0])
+                    detail_payload = connectivity[2] if len(connectivity) >= 3 else None
+                else:
+                    is_available = bool(connectivity)
+                    detail_payload = None
+                reachable = bool(is_available)
+                if reachable:
+                    message = "可访问"
+                    reachable_count += 1
+                else:
+                    extra = None
+                    if isinstance(detail_payload, dict):
+                        extra = detail_payload.get('error') or detail_payload.get('error_msg')
+                    elif isinstance(detail_payload, str):
+                        extra = detail_payload
+                    if extra:
+                        extra = str(extra)
+                    message = "不可访问" if not extra else f"不可访问：{extra}"
+            except Exception as exc:
+                reachable = False
+                message = f"不可访问：{exc}"
+            if isinstance(message, str) and len(message) > 120:
+                message = message[:117] + "..."
+            results.append({
+                "ip": token,
+                "label": "默认路由" if token is None else str(token),
+                "reachable": reachable,
+                "message": message,
+            })
+        return {
+            "ok": True,
+            "gateway": gateway,
+            "resolved_host": resolved_host,
+            "host_ip": resolved_ip,
+            "self_service": self_service or self.self_service,
+            "reachable_count": reachable_count,
+            "results": results,
+        }
 
     def set_config(self, username, password):
         if username != "" and username != self.config['username']:
@@ -539,6 +615,9 @@ class GUIBackend():
         if client is None:
             return False, False, {}
         try:
+            is_available = False
+            is_online = False
+            data = {}
             for _ in range(5):
                 is_available, is_online, data = client.is_connected()
                 if hope is None or is_online == hope:
@@ -566,7 +645,7 @@ class MainWindow():
             'global.quitConfirmation': u'确定关闭?',
         }
         self.window = webview.create_window(
-            "校园网登陆器", os.path.join(WebRoot, "index.html"), width=400, height=300, resizable=False)
+            "校园网登陆器", os.path.join(WebRoot, "index.html"), width=400, height=300, resizable=True)
         self.window.expose(
             self.srunpy.get_online_data,
             self.srunpy.login,
@@ -582,6 +661,7 @@ class MainWindow():
             self.srunpy.set_srun_host,
             self.srunpy.get_ip_settings,
             self.srunpy.update_ip_settings,
+            self.srunpy.probe_gateway_ips,
             self.srunpy.set_active_client_ip,
         )
         def after_window_created():
