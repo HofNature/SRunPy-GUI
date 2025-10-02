@@ -117,6 +117,9 @@ def load_config(aes_key):
             config['auto_login'] = False
         config.setdefault('local_ips', [])
         config.setdefault('active_ip', None)
+    if len(config["local_ips"]) == 0:
+        config["local_ips"] = [None]
+        config["active_ip"] = None
     return config
 
 def reset_config():
