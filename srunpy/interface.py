@@ -523,12 +523,14 @@ class GUIBackend():
         active = settings.get('active')
         return self.set_srun_host(gateway, self_service, selected, active)
     
-    def do_update(self,open=False):
-        if open:
+    def do_update(self,start=False):
+        if start:
             executable_path = os.path.abspath(sys.executable)
             arguments = sys.argv
             if "--no-auto-open" in arguments:
                 arguments.remove("--no-auto-open")
+            if arguments[0].endswith('srunpy-gui') or arguments[0].endswith('srunpy'):
+                arguments[0]+= '.exe'
             if executable_path.endswith('pythonw.exe'):
                 executable_path = os.path.join(os.path.dirname(executable_path),'python.exe')
             try:
@@ -537,16 +539,37 @@ class GUIBackend():
                 pip = None
             if os.path.exists(executable_path) and executable_path.endswith('python.exe') and pip is not None:
                 try:
-                    subprocess.check_call([executable_path, '-m', 'pip', 'install', '--upgrade', 'srunpy'])
-                    # Spawn the new process without leaking file descriptors by
-                    # redirecting stdio and enabling close_fds.
-                    subprocess.Popen([executable_path] + arguments,
+                    import tempfile
+                    # create a small .bat that waits for this process to exit, performs the upgrade,
+                    # launches the updated app and then deletes itself
+                    bat_path = os.path.join(tempfile.gettempdir(), f"SRunPy_update_{int(time.time())}.bat")
+                    args_cmd = subprocess.list2cmdline(arguments)
+                    bat_lines = [
+                        "@echo off",
+                        "REM wait a bit for the current process to exit",
+                        "echo Updating, please wait ...",
+                        "timeout /t 2 /nobreak >nul 2>&1",
+                        f'"{executable_path}" -m pip install --upgrade srunpy',
+                    ]
+                    if arguments[0].endswith('.exe'):
+                        exe_path = os.path.abspath(arguments[0])
+                        bat_lines.append(f'cd /d "{os.path.dirname(exe_path)}"')
+                        bat_lines.append(f'start {os.path.basename(exe_path)}')
+                    else:
+                        f'start \"\" \"{executable_path}\" {args_cmd}'
+                    bat_lines.append("exit")
+                    with open(bat_path, "w", encoding="utf-8") as f:
+                        f.write("\r\n".join(bat_lines))
+                    # launch the .bat detached and exit current process so files are not locked
+                    subprocess.Popen(['cmd', '/c', 'start', '', bat_path],
                                      stdout=subprocess.DEVNULL,
                                      stderr=subprocess.DEVNULL,
                                      stdin=subprocess.DEVNULL,
                                      close_fds=True)
+                    os._exit(0)
                     return True
-                except:
+                except Exception as exc:
+                    print(f"自动更新失败: {exc}")
                     webbrowser.open("https://github.com/HofNature/SRunPy-GUI/releases/latest")
                     return False
             else:
@@ -741,4 +764,4 @@ class MainWindow():
         if self.srunpy.qt_backend:
             webview.start(after_window_created, localization=localization, debug=False, gui='qt', icon=self.icon_path)
         else:
-            webview.start(after_window_created, localization=localization, debug=True)
+            webview.start(after_window_created, localization=localization, debug=False)
