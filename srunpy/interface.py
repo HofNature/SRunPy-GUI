@@ -307,7 +307,7 @@ class GUIBackend():
                 ip_list.append(value)
                 seen.add(value)
 
-        append_ip(None)
+        # append_ip(None)
         if self.local_ips:
             for ip in self.local_ips:
                 append_ip(ip)
@@ -556,28 +556,29 @@ class GUIBackend():
     def auto_login_deamon(self):
         login_failed_count = 0
         while self.auto_login:
-            client = self.get_client()
-            if client is None:
+            if len(self.srun_clients) == 0:
                 time.sleep(self.sleeptime)
                 continue
-            try:
-                is_available, is_online, _ = client.is_connected()
-            except:
-                is_available, is_online = False, False
-            if is_available and not is_online:
+            for key, client in self.srun_clients.items():
+                key_str = f"IP {key} " if key is not None else ""
                 try:
-                    if self.login():
-                        sysToaster.show_toast(
-                            "校园网登陆器", "自动登陆成功", duration=5, threaded=True)
-                        login_failed_count = 0
-                    else:
-                        sysToaster.show_toast(
-                            "校园网登陆器", "自动登陆失败", duration=5, threaded=True)
-                        login_failed_count += 1
+                    is_available, is_online, _ = client.is_connected()
                 except:
-                    sysToaster.show_toast(
-                        "校园网登陆器", "自动登陆失败", duration=5, threaded=True)
-                    login_failed_count += 1
+                    is_available, is_online = False, False
+                if is_available and not is_online:
+                    try:
+                        if self.login(key):
+                            sysToaster.show_toast(
+                                "校园网登陆器", key_str + "自动登陆成功", duration=5, threaded=True)
+                            login_failed_count = 0
+                        else:
+                            sysToaster.show_toast(
+                                "校园网登陆器", key_str + "自动登陆失败", duration=5, threaded=True)
+                            login_failed_count += 1
+                    except:
+                        sysToaster.show_toast(
+                            "校园网登陆器", key_str + "自动登陆失败", duration=5, threaded=True)
+                        login_failed_count += 1
             if self.auto_login:
                 time.sleep(self.sleeptime)
                 if login_failed_count > 3:
@@ -645,7 +646,7 @@ class MainWindow():
             'global.quitConfirmation': u'确定关闭?',
         }
         self.window = webview.create_window(
-            "校园网登陆器", os.path.join(WebRoot, "index.html"), width=400, height=300, resizable=True)
+            "校园网登陆器", os.path.join(WebRoot, "index.html"), width=400, height=350, resizable=False)
         self.window.expose(
             self.srunpy.get_online_data,
             self.srunpy.login,
@@ -702,7 +703,7 @@ class MainWindow():
                     scale = float(dpi) / 96.0
 
                     # original logical size used when creating the window
-                    logical_w, logical_h = 400, 300
+                    logical_w, logical_h = 400, 350
                     new_w = int(logical_w * scale)
                     new_h = int(logical_h * scale)
 

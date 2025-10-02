@@ -118,13 +118,16 @@ function renderIpSelector() {
     }
     const desiredValue = active_ip === null ? DEFAULT_IP_TOKEN : String(active_ip);
     selector.innerHTML = '';
-    const defaultOption = document.createElement('option');
-    defaultOption.value = DEFAULT_IP_TOKEN;
-    defaultOption.innerText = '自动选择';
-    selector.appendChild(defaultOption);
     const seen = new Set();
     selected_ips.forEach((ip) => {
-        if (ip === null || ip === undefined) {
+        if (ip === undefined) {
+            return;
+        }
+        if (ip === null) {
+            const defaultOption = document.createElement('option');
+            defaultOption.value = DEFAULT_IP_TOKEN;
+            defaultOption.innerText = '自动选择';
+            selector.insertBefore(defaultOption, selector.firstChild);
             return;
         }
         const ipStr = String(ip);
@@ -286,9 +289,11 @@ function openSettings(){
         document.getElementById('settings-self-service').value = settingsWizard.selfService;
         document.getElementById('settings-step-gateway').classList.add('active');
         document.getElementById('settings-step-ip').classList.remove('active');
-        document.getElementById('settings-probe-status').innerText = '请填写网关后下一步进行检查。';
-        document.getElementById('settings-probe-results').innerHTML = '';
-        document.getElementById('settings-confirm-ips').disabled = true;
+        document.getElementById('settings-probe-status').innerText = '点击下一步将检查配置正确性';
+        // document.getElementById('settings-probe-results').innerHTML = '';
+        document.getElementById('settings-probe-results').style.display = 'none';
+        // document.getElementById('settings-confirm-ips').disabled = true;
+        document.getElementById('settings-confirm-ips').style.display = "none";
         document.getElementById('settings-action-next').classList.remove('hidden');
         document.getElementById('settings-action-refresh').classList.add('hidden');
         document.getElementById('settings-action-save').classList.add('hidden');
@@ -360,11 +365,11 @@ function populateSettingsIpList(results){
         const title = document.createElement('span');
         title.className = 'settings-ip-label';
         title.innerText = entry.label || (entry.ip === null ? '默认路由' : String(entry.ip));
-        const detail = document.createElement('span');
-        detail.className = 'settings-ip-message';
-        detail.innerText = entry.message || '';
+        // const detail = document.createElement('span');
+        // detail.className = 'settings-ip-message';
+        // detail.innerText = entry.message || '';
         textSpan.appendChild(title);
-        textSpan.appendChild(detail);
+        // textSpan.appendChild(detail);
         checkboxLabel.appendChild(checkbox);
         checkboxLabel.appendChild(textSpan);
 
@@ -449,7 +454,8 @@ function refreshSettingsIps(){
     const inlineButton = document.getElementById('settings-confirm-ips');
     const refreshButton = document.getElementById('settings-action-refresh');
     if (inlineButton) {
-        inlineButton.disabled = true;
+        // inlineButton.disabled = true;
+        inlineButton.style.display = "none";
     }
     if (refreshButton) {
         refreshButton.disabled = true;
@@ -457,7 +463,8 @@ function refreshSettingsIps(){
     document.getElementById('settings-probe-status').innerText = '正在重新检查...';
     window.pywebview.api.probe_gateway_ips(settingsWizard.gateway, settingsWizard.selfService).then((result)=>{
         if (inlineButton) {
-            inlineButton.disabled = false;
+            // inlineButton.disabled = false;
+            inlineButton.style.display = "unset";
         }
         if (refreshButton) {
             refreshButton.disabled = false;
@@ -477,7 +484,8 @@ function refreshSettingsIps(){
         populateSettingsIpList(settingsWizard.results);
     }).catch((error)=>{
         if (inlineButton) {
-            inlineButton.disabled = false;
+            // inlineButton.disabled = false;
+            inlineButton.style.display = "unset";
         }
         if (refreshButton) {
             refreshButton.disabled = false;
@@ -589,8 +597,9 @@ function proceedSettingsStep(){
         }
         settingsWizard.gateway = gatewayInput;
         settingsWizard.selfService = selfInput;
-        document.getElementById('settings-probe-status').innerText = '正在检查各IP连通性...';
-        document.getElementById('settings-probe-results').innerHTML = '';
+        document.getElementById('settings-probe-status').innerText = '正在检查连通性...';
+        // document.getElementById('settings-probe-results').innerHTML = '';
+        document.getElementById('settings-probe-results').style.display = 'none';
         document.getElementById('settings-action-next').disabled = true;
         window.pywebview.api.probe_gateway_ips(gatewayInput, selfInput).then((result)=>{
             document.getElementById('settings-action-next').disabled = false;
@@ -648,6 +657,7 @@ function initializeSelectionFromProbe(result){
 
 function renderProbeResults(){
     const container = document.getElementById('settings-probe-results');
+    document.getElementById('settings-probe-results').style.display = 'auto';
     if (!container) {
         return;
     }
@@ -685,7 +695,8 @@ function renderIpSelectionStep(){
     document.getElementById('settings-action-save').classList.remove('hidden');
     document.getElementById('settings-action-refresh').classList.remove('hidden');
     document.getElementById('settings-action-back').classList.remove('hidden');
-    document.getElementById('settings-confirm-ips').disabled = false;
+    // document.getElementById('settings-confirm-ips').disabled = false;
+    document.getElementById('settings-confirm-ips').style.display = "unset";
     populateSettingsIpList(settingsWizard.results);
 }
 
@@ -710,5 +721,6 @@ function updateSettingsFooterNote(){
     }
     const total = settingsWizard.results.length;
     const ok = settingsWizard.results.filter(item => item.reachable).length;
-    note.innerText = `共检测到 ${total} 个IP，其中 ${ok} 个可访问。请至少选择一个可访问的IP。`;
+    note.innerText = `${ok} / ${total}`;
+    // note.innerText = `共检测到 ${total} 个IP，其中 ${ok} 个可访问。请至少选择一个可访问的IP。`;
 }

@@ -167,7 +167,9 @@ input#input-input {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 8px;
+    /* margin-bottom: 8px; */
+    width: 100%;
+    padding: 0 10px;
 }
 
 .ip-selector-bar span {
@@ -187,9 +189,12 @@ input#input-input {
 }
 
 .settings-bar {
-    margin-top: 8px;
     display: flex;
     flex-direction: row;
+}
+
+.login-pannel{
+    margin: 8px 0;
 }
 
 .settings-bar,
@@ -306,9 +311,14 @@ div#login-on {
 }
 
 .settings-content {
-    width: 360px;
+    /* width: 360px;
     min-height: 360px;
-    padding: 24px;
+    padding: 24px; */
+    padding: 18px;
+    width: 300px;
+    height: 220px;
+    left: calc(50% - 150px - 18px - 5px);
+    top: calc(48% - 110px - 18px - 5px);
 }
 .settings-probe-status-text {
     font-size: 13px;
@@ -360,7 +370,7 @@ div#login-on {
 }
 
 .settings-ip-status {
-    min-width: 48px;
+    width: 48px;
     font-size: 12px;
     font-weight: bold;
     text-align: center;
@@ -390,7 +400,7 @@ div#login-on {
 }
 
 .settings-ip-note {
-    margin-top: 12px;
+    /* margin-top: 12px; */
     font-size: 12px;
     color: #555;
 }
@@ -407,7 +417,10 @@ div#login-on {
     gap: 8px;
     margin-top: 16px;
 }
-
+.row-section {
+    flex-direction: row;
+    align-items: center;
+}
 .settings-section span {
     font-size: 14px;
     color: #555;
@@ -425,8 +438,10 @@ div#login-on {
 }
 
 #settings-ip-list {
-    margin-top: 8px;
-    max-height: 160px;
+    /* margin-top: 8px;
+    max-height: 160px; */
+    margin-bottom: -8px;
+    height: 80px;
     overflow-y: auto;
     border: 1px solid #eee;
     border-radius: 6px;
@@ -449,16 +464,26 @@ div#login-on {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-grow: 1;
 }
-
+.settings-ip-checkbox {
+    flex-grow: 0;   
+    box-shadow: none;
+}
+.settings-ip-description{
+    flex-grow: 1;
+}
 .settings-ip-radio-label {
     display: flex;
     align-items: center;
     gap: 6px;
     font-size: 12px;
     color: #666;
+    margin-left: 6px;
 }
-
+.settings-ip-radio{
+    box-shadow: none;
+}
 .settings-actions {
     margin-top: 24px;
     display: flex;
@@ -491,7 +516,7 @@ div#login-on {
     display: block;
 }
 
-#settings-action-save,
+/* #settings-action-save, */
 #settings-action-refresh,
 #settings-action-back {
     display: none;

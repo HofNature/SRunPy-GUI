@@ -28,11 +28,13 @@
             <div class="toolbar-item" id="toolbar-item-exit" title="退出软件" onclick="window.pywebview.api.exit_application()"></div>
         </div>
         <div class="main-container-v">
-            <div class="login-pannel" data-state="offline">
+            <div class="settings-bar">
                 <div class="ip-selector-bar">
-                    <span>IP线路</span>
+                    <span>本机上网地址</span>
                     <select id="ip-selector" aria-label="选择IP线路"></select>
                 </div>
+            </div>
+            <div class="login-pannel" data-state="offline">
                 <div class="login-info" id="login-off">
                     <div class="flex-span"></div>
                     <div class="input-item">
@@ -129,17 +131,17 @@
         <div class="settings-content">
             <img src="icons/setting.png" alt="设置">
             <div id="settings-step-gateway" class="settings-step">
-                <div class="settings-section">
+                <div class="settings-section row-section">
                     <span>深澜网关</span>
                     <input id="settings-gateway" placeholder="例如 gw.buaa.edu.cn" aria-label="深澜网关">
                 </div>
-                <div class="settings-section">
+                <div class="settings-section row-section">
                     <span>自服务地址</span>
                     <input id="settings-self-service" placeholder="例如 zfw.buaa.edu.cn" aria-label="自服务地址">
                 </div>
                 <div class="settings-section">
-                    <span>连通性检查</span>
-                    <div id="settings-probe-status" class="settings-probe-status-text">请填写网关后下一步进行检查。</div>
+                    <!-- <span>连通性检查</span> -->
+                    <div id="settings-probe-status" class="settings-probe-status-text">点击下一步将检查配置正确性</div>
                     <div id="settings-probe-results" class="settings-probe-results"></div>
                 </div>
             </div>
@@ -147,10 +149,9 @@
                 <div class="settings-section">
                     <div class="settings-ips-header">
                         <span>选择可用IP</span>
-                        <button id="settings-confirm-ips" onclick="refreshSettingsIps()">重新检查</button>
+                        <div id="settings-ip-note" class="settings-ip-note"></div>
                     </div>
                     <div id="settings-ip-list"></div>
-                    <div id="settings-ip-note" class="settings-ip-note"></div>
                 </div>
             </div>
             <div class="settings-actions">
@@ -158,6 +159,7 @@
                 <button id="settings-action-save" class="hidden" onclick="saveSettings()">保存</button>
                 <button id="settings-action-refresh" class="hidden" onclick="refreshSettingsIps()">刷新结果</button>
                 <button id="settings-action-back" class="hidden" onclick="goBackToGatewayStep()">上一步</button>
+                <button id="settings-confirm-ips" onclick="refreshSettingsIps()">重新检查</button>
                 <button onclick="closeSettings()">关闭</button>
             </div>
         </div>
