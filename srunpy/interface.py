@@ -1184,11 +1184,63 @@ class MainWindow:
         
         self.hwnd = None
 
-        def close_window():
-            self.window.destroy()
+        def _animate_and_action(action: str) -> None:
+            """
+            Animate the frameless window using AnimateWindow if hwnd is available,
+            then perform the requested action ('close' or 'minimize').
+            """
+            hwnd = getattr(self, 'hwnd', None)
+            # Fallback to original behavior if no hwnd
+            if not hwnd:
+                if action == 'close':
+                    try:
+                        self.window.destroy()
+                    except Exception:
+                        pass
+                else:
+                    try:
+                        self.window.minimize()
+                    except Exception:
+                        pass
+                return
 
-        def minimize_window():
-            self.window.minimize()
+            try:
+                # AnimateWindow flags
+                AW_HIDE = 0x00010000
+                AW_CENTER = 0x00000010
+                AW_BLEND = 0x00080000
+
+                
+
+                animate = getattr(ctypes.windll.user32, "AnimateWindow", None)
+                if animate is not None:
+                    if action == 'close':
+                        flags = AW_HIDE | AW_CENTER | AW_BLEND
+                        # Slide down when closing (works well for frameless)
+                        animate(hwnd, 300, flags)  # AW_VER_POSITIVE   
+                    else:
+                        # Use a short fade-out/slide when hiding (works well for frameless)
+                        flags = AW_HIDE | AW_BLEND
+                        # 200 ms feels natural (Windows typical animation length)
+                        animate(hwnd, 200, flags)
+            except Exception:
+                # If animation fails, ignore and continue to the action
+                pass
+
+            # Perform the actual action
+            try:
+                if action == 'close':
+                    self.window.destroy()
+                else:
+                    self.window.minimize()
+            except Exception:
+                pass    
+
+        def close_window() -> None:
+            _animate_and_action('close')
+
+        def minimize_window() -> None:
+            _animate_and_action('minimize')
 
         # Expose backend methods to JavaScript
         # 向 JavaScript 暴露后端方法
@@ -1266,13 +1318,27 @@ class MainWindow:
                     new_w = int(logical_w * scale)
                     new_h = int(logical_h * scale)
 
-                    # Keep current position, only resize
-                    # 保持当前位置，仅调整大小
-                    left, top, right, bottom = win32gui.GetWindowRect(hwnd)
-                    win32gui.SetWindowPos(
-                        hwnd, None, left, top, new_w, new_h,
-                        win32con.SWP_NOZORDER
-                    )
+                    # Center the window on the primary screen and resize
+                    # 将窗口置于主屏幕中央并调整大小
+                    try:
+                        screen_w = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
+                        screen_h = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+                        left = int((screen_w - new_w) / 2)
+                        top = int((screen_h - new_h) / 2)
+                        win32gui.SetWindowPos(
+                            hwnd, None, left, top, new_w, new_h,
+                            win32con.SWP_NOZORDER
+                        )
+                    except Exception:
+                        # Fallback: keep current position, only resize
+                        left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+                        try:
+                            win32gui.SetWindowPos(
+                                hwnd, None, left, top, new_w, new_h,
+                                win32con.SWP_NOZORDER
+                            )
+                        except Exception:
+                            pass
 
                     try:
                         icon_file = os.path.join(WebRoot, 'icons', 'logo.ico')
@@ -1308,7 +1374,7 @@ class MainWindow:
                     #         pass
                     # except Exception as e:
                     #     pass
-                    
+
             self.window.evaluate_js('updateInfo()')
 
         if self.srunpy.qt_backend:
@@ -1323,6 +1389,6 @@ class MainWindow:
             webview.start(
                 after_window_created,
                 localization=localization,
-                debug=True
+                debug=False
             )
 
