@@ -1,169 +1,277 @@
 <html>
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
     <title>校园网登录器</title>
-    <link type="images/png" rel="shortcut icon" href="/favicon.png">
+    <link type="images/png" rel="shortcut icon" href="/favicon.png" />
     <script src="./script.js"></script>
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./style.css" />
     <!--
         禁止缓存
         -->
-    <meta http-equiv="Expires" content="0">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Cache-control" content="no-cache">
-    <meta http-equiv="Cache" content="no-cache">
-</head>
+    <meta http-equiv="Expires" content="0" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-control" content="no-cache" />
+    <meta http-equiv="Cache" content="no-cache" />
+  </head>
 
-<body>
-    <div class="main-container-h">
+  <body>
+    <div class="title-bar">
+      <div class="title-bar-drag-region pywebview-drag-region">
+        <div class="program-icon"></div>
+        <span class="title-bar-text">校园网登录器</span>
+      </div>
+      <div class="title-bar-buttons">
+        <div
+          class="toolbar-item"
+          id="minimize-button"
+          title="最小化"
+          onclick="window.pywebview.api.minimize_window()"
+        >-</div>
+        <!-- <div
+          class="toolbar-item"
+          id="maximize-button"
+          title="最大化"
+          onclick="window.pywebview.api.maximize_window()"
+        ></div> -->
+        <div
+          class="toolbar-item"
+          id="close-button"
+          title="收至任务栏"
+          onclick="window.pywebview.api.close_window()"
+        >×</div>
+      </div>
+    </div>
+    <div class="app-container">
+      <div class="main-container-h">
         <div class="toolbar">
-            <div class="toolbar-item" id="toolbar-item-self-service" title="自服务" onclick="startSelfService()"></div>
-            <!-- <div class="toolbar-item" id="toolbar-item-browser" title="网页打开" onclick="window.pywebview.api.webbrowser_open('https://gw.buaa.edu.cn')"></div> -->
-            <div class="toolbar-item" id="toolbar-item-refresh" title="刷新" onclick="updateInfo()"></div>
-            <div class="flex-span"></div>
-            <div class="toolbar-item" id="toolbar-item-about" title="关于软件" onclick="do_Update()"></div>
-            <div class="toolbar-item" id="toolbar-item-settings" title="设置" onclick="openSettings()"></div>
-            <div class="toolbar-item" id="toolbar-item-exit" title="退出软件" onclick="window.pywebview.api.exit_application()"></div>
+          <div
+            class="toolbar-item"
+            id="toolbar-item-self-service"
+            title="自服务"
+            onclick="startSelfService()"
+          ></div>
+          <!-- <div class="toolbar-item" id="toolbar-item-browser" title="网页打开" onclick="window.pywebview.api.webbrowser_open('https://gw.buaa.edu.cn')"></div> -->
+          <div
+            class="toolbar-item"
+            id="toolbar-item-refresh"
+            title="刷新"
+            onclick="updateInfo()"
+          ></div>
+          <div class="flex-span"></div>
+          <div
+            class="toolbar-item"
+            id="toolbar-item-about"
+            title="关于软件"
+            onclick="do_Update()"
+          ></div>
+          <div
+            class="toolbar-item"
+            id="toolbar-item-settings"
+            title="设置"
+            onclick="openSettings()"
+          ></div>
+          <div
+            class="toolbar-item"
+            id="toolbar-item-exit"
+            title="退出软件"
+            onclick="window.pywebview.api.exit_application()"
+          ></div>
         </div>
         <div class="main-container-v">
-            <div class="settings-bar">
-                <div class="ip-selector-bar">
-                    <span>本机上网地址</span>
-                    <select id="ip-selector" aria-label="选择IP线路"></select>
-                </div>
+          <div class="settings-bar">
+            <div class="ip-selector-bar">
+              <span>联网接口</span>
+              <select id="ip-selector" aria-label="选择本机IP地址"></select>
             </div>
-            <div class="login-pannel" data-state="offline">
-                <div class="login-info" id="login-off">
-                    <div class="flex-span"></div>
-                    <div class="input-item">
-                        <div class="input-text">用户名</div>
-                        <input type="text" id="username" placeholder="用户名">
-                    </div>
-                    <div class="flex-span"></div>
-                    <div class="input-item">
-                        <div class="input-text">密码</div>
-                        <input type="password" id="password" placeholder="密码">
-                    </div>
-                    <div class="flex-span"></div>
-                </div>
-                <div class="login-info" id="login-on">
-                    <div class="flex-span"></div>
-                    <div class="info-item">
-                        <div class="info-title">用户名</div>
-                        <div class="info-text" id="username-text">用户名</div>
-                    </div>
-                    <div class="flex-span"></div>
-                    <div class="info-item">
-                        <div class="info-title">已用流量</div>
-                        <div class="info-text" id="used-flow">0</div>
-                    </div>
-                    <div class="flex-span"></div>
-                    <div class="info-item">
-                        <div class="info-title">账户余额</div>
-                        <div class="info-text" id="balance-last">0</div>
-                    </div>
-                    <div class="flex-span"></div>
-                    <div class="info-item">
-                        <div class="info-title">IP地址</div>
-                        <div class="info-text" id="ip-address">127.0.0.1</div>
-                    </div>
-                    <div class="flex-span"></div>
-                </div>
-                <div class="login-form">
-                    <button class="login-button" onclick="login()" data-loggedin=True aria-label="执行登录或退出"></button>
-                </div>
+          </div>
+          <div class="login-pannel" data-state="offline">
+            <div class="login-info" id="login-off">
+              <div class="flex-span"></div>
+              <div class="input-item">
+                <div class="input-text">用户名</div>
+                <input type="text" id="username" placeholder="用户名" />
+              </div>
+              <div class="flex-span"></div>
+              <div class="input-item">
+                <div class="input-text">密码</div>
+                <input type="password" id="password" placeholder="密码" />
+              </div>
+              <div class="flex-span"></div>
             </div>
-            <div class="settings-bar">
-                <div class="settings-item" onclick="">
-                    <div class="flex-span"></div>
-                    <div class="switch" id="auto-login" data-state="selected" onclick="set_auto_login()">
-                        <div class="switch-round"></div>
-                    </div>
-                    <span class="settings-text">断线重连</span>
-                    <div class="flex-span"></div>
-                </div>
-                <div class="settings-item" onclick="">
-                    <div class="flex-span"></div>
-                    <div class="switch" id="auto-start" data-state="unselected" onclick="set_auto_start()">
-                        <div class="switch-round"></div>
-                    </div>
-                    <span class="settings-text">开机自启</span>
-                    <div class="flex-span"></div>
-                </div>
+            <div class="login-info" id="login-on">
+              <div class="flex-span"></div>
+              <div class="info-item">
+                <div class="info-title">用户名</div>
+                <div class="info-text" id="username-text">用户名</div>
+              </div>
+              <div class="flex-span"></div>
+              <div class="info-item">
+                <div class="info-title">已用流量</div>
+                <div class="info-text" id="used-flow">0</div>
+              </div>
+              <div class="flex-span"></div>
+              <div class="info-item">
+                <div class="info-title">账户余额</div>
+                <div class="info-text" id="balance-last">0</div>
+              </div>
+              <div class="flex-span"></div>
+              <div class="info-item">
+                <div class="info-title">IP地址</div>
+                <div class="info-text" id="ip-address">127.0.0.1</div>
+              </div>
+              <div class="flex-span"></div>
             </div>
+            <div class="login-form">
+              <button
+                class="login-button"
+                onclick="login()"
+                data-loggedin="True"
+                aria-label="执行登录或退出"
+              ></button>
+            </div>
+          </div>
+          <div class="settings-bar">
+            <div class="settings-item" onclick="">
+              <div class="flex-span"></div>
+              <div
+                class="switch"
+                id="auto-login"
+                data-state="selected"
+                onclick="set_auto_login()"
+              >
+                <div class="switch-round"></div>
+              </div>
+              <span class="settings-text">断线重连</span>
+              <div class="flex-span"></div>
+            </div>
+            <div class="settings-item" onclick="">
+              <div class="flex-span"></div>
+              <div
+                class="switch"
+                id="auto-start"
+                data-state="unselected"
+                onclick="set_auto_start()"
+              >
+                <div class="switch-round"></div>
+              </div>
+              <span class="settings-text">开机自启</span>
+              <div class="flex-span"></div>
+            </div>
+          </div>
         </div>
-    </div>
-    <div id="alert-mask">
+      </div>
+      <div id="alert-mask">
         <div class="alert-content">
-            <img src="icons/info.png" alt="提示图标">
-            <div id="alert-text">
-                <span>这是一个提示框</span>
-            </div>
-            <div class="alert-bar">
-                <div class="flex-span"></div>
-                <button id="confirm-alert-button">确定</button>
-                <div class="flex-span"></div>
-                <button class="alert-cancle" onclick="closeAlert()">取消</button>
-                <div class="alert-cancle flex-span"></div>
-            </div>
+          <img src="icons/info.png" alt="提示图标" />
+          <div id="alert-text">
+            <span>这是一个提示框</span>
+          </div>
+          <div class="alert-bar">
+            <div class="flex-span"></div>
+            <button id="confirm-alert-button">确定</button>
+            <div class="flex-span"></div>
+            <button class="alert-cancle" onclick="closeAlert()">取消</button>
+            <div class="alert-cancle flex-span"></div>
+          </div>
         </div>
-    </div>
-    <div id="input-mask">
+      </div>
+      <div id="input-mask">
         <div class="input-content">
-            <img src="icons/info.png" alt="提示图标">
-            <div id="input-text">
-                <span>这是一个提示框</span>
-            </div>
-            <input id="input-input" placeholder="请输入内容" aria-label="输入内容">   
-            <div class="flex-span"></div> 
-            <div class="alert-bar">
-                <div class="flex-span"></div>
-                <button id="input-confirm">确定</button>
-                <div class="flex-span"></div>
-                <button onclick="closeInput()">取消</button>
-                <div class="flex-span"></div>
-            </div>
+          <img src="icons/info.png" alt="提示图标" />
+          <div id="input-text">
+            <span>这是一个提示框</span>
+          </div>
+          <input
+            id="input-input"
+            placeholder="请输入内容"
+            aria-label="输入内容"
+          />
+          <div class="flex-span"></div>
+          <div class="alert-bar">
+            <div class="flex-span"></div>
+            <button id="input-confirm">确定</button>
+            <div class="flex-span"></div>
+            <button onclick="closeInput()">取消</button>
+            <div class="flex-span"></div>
+          </div>
         </div>
-    </div>
-    <div id="settings-mask">
+      </div>
+      <div id="settings-mask">
         <div class="settings-content">
-            <img src="icons/setting.png" alt="设置">
-            <div id="settings-step-gateway" class="settings-step">
-                <div class="settings-section row-section">
-                    <span>深澜网关</span>
-                    <input id="settings-gateway" placeholder="例如 gw.buaa.edu.cn" aria-label="深澜网关">
-                </div>
-                <div class="settings-section row-section">
-                    <span>自服务地址</span>
-                    <input id="settings-self-service" placeholder="例如 zfw.buaa.edu.cn" aria-label="自服务地址">
-                </div>
-                <div class="settings-section">
-                    <!-- <span>连通性检查</span> -->
-                    <div id="settings-probe-status" class="settings-probe-status-text">点击下一步将检查配置正确性</div>
-                    <div id="settings-probe-results" class="settings-probe-results"></div>
-                </div>
+          <img src="icons/setting.png" alt="设置" />
+          <div id="settings-step-gateway" class="settings-step">
+            <div class="settings-section row-section">
+              <span>深澜网关</span>
+              <input
+                id="settings-gateway"
+                placeholder="例如 gw.buaa.edu.cn"
+                aria-label="深澜网关"
+              />
             </div>
-            <div id="settings-step-ip" class="settings-step">
-                <div class="settings-section">
-                    <div class="settings-ips-header">
-                        <span>选择可用IP</span>
-                        <div id="settings-ip-note" class="settings-ip-note"></div>
-                    </div>
-                    <div id="settings-ip-list"></div>
-                </div>
+            <div class="settings-section row-section">
+              <span>自服务地址</span>
+              <input
+                id="settings-self-service"
+                placeholder="例如 zfw.buaa.edu.cn"
+                aria-label="自服务地址"
+              />
             </div>
-            <div class="settings-actions">
-                <button id="settings-action-next" onclick="proceedSettingsStep()">下一步</button>
-                <button id="settings-action-save" class="hidden" onclick="saveSettings()">保存</button>
-                <button id="settings-action-refresh" class="hidden" onclick="refreshSettingsIps()">刷新结果</button>
-                <button id="settings-action-back" class="hidden" onclick="goBackToGatewayStep()">上一步</button>
-                <button id="settings-confirm-ips" onclick="refreshSettingsIps()">重新检查</button>
-                <button onclick="closeSettings()">关闭</button>
+            <div class="settings-section">
+              <!-- <span>连通性检查</span> -->
+              <div
+                id="settings-probe-status"
+                class="settings-probe-status-text"
+              >
+                点击下一步将检查配置正确性
+              </div>
+              <div
+                id="settings-probe-results"
+                class="settings-probe-results"
+              ></div>
             </div>
+          </div>
+          <div id="settings-step-ip" class="settings-step">
+            <div class="settings-section">
+              <div class="settings-ips-header">
+                <span>选择可用IP</span>
+                <div id="settings-ip-note" class="settings-ip-note"></div>
+              </div>
+              <div id="settings-ip-list"></div>
+            </div>
+          </div>
+          <div class="settings-actions">
+            <button id="settings-action-next" onclick="proceedSettingsStep()">
+              下一步
+            </button>
+            <button
+              id="settings-action-save"
+              class="hidden"
+              onclick="saveSettings()"
+            >
+              保存
+            </button>
+            <button
+              id="settings-action-refresh"
+              class="hidden"
+              onclick="refreshSettingsIps()"
+            >
+              刷新结果
+            </button>
+            <button
+              id="settings-action-back"
+              class="hidden"
+              onclick="goBackToGatewayStep()"
+            >
+              上一步
+            </button>
+            <button id="settings-confirm-ips" onclick="refreshSettingsIps()">
+              重新检查
+            </button>
+            <button onclick="closeSettings()">关闭</button>
+          </div>
         </div>
+      </div>
     </div>
-</body>
-
+  </body>
 </html>

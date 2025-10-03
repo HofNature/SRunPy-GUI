@@ -1176,9 +1176,19 @@ class MainWindow:
             "校园网登陆器",
             os.path.join(WebRoot, "index.html"),
             width=400,
-            height=350,
-            resizable=False
+            height=355,
+            resizable=False,
+            frameless=True,
+            easy_drag=False,
         )
+        
+        self.hwnd = None
+
+        def close_window():
+            self.window.destroy()
+
+        def minimize_window():
+            self.window.minimize()
 
         # Expose backend methods to JavaScript
         # 向 JavaScript 暴露后端方法
@@ -1199,6 +1209,8 @@ class MainWindow:
             self.srunpy.update_ip_settings,
             self.srunpy.probe_gateway_ips,
             self.srunpy.set_active_client_ip,
+            close_window,
+            minimize_window
         )
 
         def after_window_created() -> None:
@@ -1227,6 +1239,7 @@ class MainWindow:
                 self.window.set_title("校园网登陆器")
 
                 if hwnd:
+                    self.hwnd = hwnd
                     # Get DPI for the window
                     # 获取窗口的 DPI
                     try:
@@ -1249,7 +1262,7 @@ class MainWindow:
 
                     # Original logical size used when creating the window
                     # 创建窗口时使用的原始逻辑大小
-                    logical_w, logical_h = 400, 350
+                    logical_w, logical_h = 400, 355
                     new_w = int(logical_w * scale)
                     new_h = int(logical_h * scale)
 
@@ -1261,6 +1274,41 @@ class MainWindow:
                         win32con.SWP_NOZORDER
                     )
 
+                    try:
+                        icon_file = os.path.join(WebRoot, 'icons', 'logo.ico')
+                        if os.path.exists(icon_file):
+                            # Try to load icon sizes for big and small icons
+                            large = win32gui.LoadImage(0, icon_file, win32con.IMAGE_ICON, 32, 32, win32con.LR_LOADFROMFILE)
+                            small = win32gui.LoadImage(0, icon_file, win32con.IMAGE_ICON, 16, 16, win32con.LR_LOADFROMFILE)
+                            if large:
+                                win32gui.SendMessage(hwnd, win32con.WM_SETICON, win32con.ICON_BIG, large)
+                            if small:
+                                win32gui.SendMessage(hwnd, win32con.WM_SETICON, win32con.ICON_SMALL, small)
+                    except Exception as e:
+                        pass
+
+                    # try:
+                    #     class MARGINS(ctypes.Structure):
+                    #         _fields_ = [
+                    #             ("cxLeftWidth", ctypes.c_int),
+                    #             ("cxRightWidth", ctypes.c_int),
+                    #             ("cyTopHeight", ctypes.c_int),
+                    #             ("cyBottomHeight", ctypes.c_int),
+                    #         ]
+
+                    #     # 尝试通过 DWM 将窗口框架延伸到客户区顶部，模拟标题栏高度
+                    #     try:
+                    #         sys_cycaption = win32api.GetSystemMetrics(win32con.SM_CYCAPTION)
+                    #         margins = MARGINS(0, 0, int(sys_cycaption), 0)
+                    #         dwm = getattr(ctypes.windll, "dwmapi", None)
+                    #         if dwm is not None:
+                    #             dwm.DwmExtendFrameIntoClientArea(hwnd, ctypes.byref(margins))
+                    #     except Exception:
+                    #         # 若不支持 DWM 或调用失败，静默忽略
+                    #         pass
+                    # except Exception as e:
+                    #     pass
+                    
             self.window.evaluate_js('updateInfo()')
 
         if self.srunpy.qt_backend:
@@ -1275,6 +1323,6 @@ class MainWindow:
             webview.start(
                 after_window_created,
                 localization=localization,
-                debug=False
+                debug=True
             )
 

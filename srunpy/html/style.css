@@ -16,7 +16,7 @@ html,
 body {
     width: 100%;
     height: 100%;
-    background: #f6f6f6;
+    background: #f7f7f7;
 }
 
 .main-container-v {
@@ -41,7 +41,7 @@ body {
 div#alert-mask,
 div#input-mask,
 div#settings-mask {
-    position: fixed;
+    position: absolute;
     left: 0;
     right: 0;
     top: 0;
@@ -72,7 +72,7 @@ div#settings-mask {
     padding: 32px;
 }
 
-.input-content{
+.input-content {
     height: 148px;
     top: calc(48% - 74px - 32px - 5px);
 }
@@ -166,16 +166,19 @@ input#input-input {
 .ip-selector-bar {
     display: flex;
     align-items: center;
-    gap: 8px;
+    /* gap: 8px; */
     /* margin-bottom: 8px; */
     width: 100%;
-    padding: 0 10px;
+    /* padding: 0 10px; */
 }
 
 .ip-selector-bar span {
-    font-size: 14px;
-    color: #444;
+    /* font-size: 14px; */
+    /* color: #444; */
     white-space: nowrap;
+    width: 80px;
+    text-align: right;
+    margin-right: 10px;
 }
 
 .ip-selector-bar select {
@@ -186,6 +189,7 @@ input#input-input {
     box-shadow: 1px 1px 5px 1px #0001;
     padding: 0 12px;
     background: #fff;
+    margin: 0 8px;
 }
 
 .settings-bar {
@@ -193,8 +197,78 @@ input#input-input {
     flex-direction: row;
 }
 
-.login-pannel{
+.login-pannel {
     margin: 8px 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.app-container {
+    flex-grow: 1;
+    position: relative;
+}
+
+.title-bar {
+    height: 46px;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    background-color: #f3f3f3;
+    padding-top: 2px;
+    border-bottom: 1px solid #ddd;
+    box-shadow: 0px 0px 4px 0 #0001;
+}
+
+div#minimize-button {
+    margin: 0 7px;
+
+}
+div#close-button:hover,
+div#minimize-button:hover {
+    background-color: #e6e6e6;
+}
+div#close-button,
+div#minimize-button {
+    line-height: 32px;
+    text-align: center;
+    font-size: 32px;
+    font-weight: 200;
+}
+
+div#close-button {
+    margin-right: 7px;
+}
+
+.title-bar-buttons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.title-bar-drag-region {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 7px;
+}
+
+.program-icon {
+    width: 26px;
+    height: 26px;
+    background-image: url(icons/journey.png);
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    margin: 0px 13px;
+}
+
+span.title-bar-text {
+    text-align: center;
+    flex-grow: 1;
 }
 
 .settings-bar,
@@ -232,9 +306,11 @@ div#toolbar-item-self-service {
 div#toolbar-item-browser {
     background-image: url(icons/planet.png);
 }
+
 div#toolbar-item-refresh {
     background-image: url(icons/refresh.png);
 }
+
 div#toolbar-item-exit {
     background-image: url(icons/close-one.png);
 }
@@ -282,6 +358,7 @@ div#toolbar-item-settings {
 .switch[data-state="selected"] .switch-round {
     left: 41;
 }
+
 .switch[data-state="selected"]:hover .switch-round {
     left: 40;
 }
@@ -320,6 +397,7 @@ div#login-on {
     left: calc(50% - 150px - 18px - 5px);
     top: calc(48% - 110px - 18px - 5px);
 }
+
 .settings-probe-status-text {
     font-size: 13px;
     color: #666;
@@ -417,10 +495,12 @@ div#login-on {
     gap: 8px;
     margin-top: 16px;
 }
+
 .row-section {
     flex-direction: row;
     align-items: center;
 }
+
 .settings-section span {
     font-size: 14px;
     color: #555;
@@ -466,13 +546,16 @@ div#login-on {
     gap: 8px;
     flex-grow: 1;
 }
+
 .settings-ip-checkbox {
-    flex-grow: 0;   
+    flex-grow: 0;
     box-shadow: none;
 }
-.settings-ip-description{
+
+.settings-ip-description {
     flex-grow: 1;
 }
+
 .settings-ip-radio-label {
     display: flex;
     align-items: center;
@@ -481,9 +564,11 @@ div#login-on {
     color: #666;
     margin-left: 6px;
 }
-.settings-ip-radio{
+
+.settings-ip-radio {
     box-shadow: none;
 }
+
 .settings-actions {
     margin-top: 24px;
     display: flex;
@@ -581,8 +666,8 @@ input {
     }
 }
 
-.login-button:disabled::before{
-    content: "请稍等"!important;
+.login-button:disabled::before {
+    content: "请稍等" !important;
 }
 
 button {
@@ -613,7 +698,7 @@ button:hover {
 }
 
 #login-on::before {
-    content:"";
+    content: "";
     position: fixed;
     background-image: url(https://gw.buaa.edu.cn/static/images/test/tips.gif);
     background-repeat: no-repeat;
