@@ -961,7 +961,9 @@ class GUIBackend:
         Args / 参数:
             ip: Client IP (None for default) / 客户端 IP（None 表示默认）
         """
-        client = self.get_client(ip)
+        client = self.get_client(None)
+        if client is None:
+            client = self.get_client(ip)
         if client is None:
             webbrowser.open(f"http://{self.self_service}")
             return
@@ -973,7 +975,7 @@ class GUIBackend:
             else:
                 username = self.username
             data_str = base64.standard_b64encode(
-                f"{username}:{username}".encode()
+                f"zh-CN:{username}".encode()
             ).decode()
             webbrowser.open(
                 f"http://{self.self_service}/site/sso?data={data_str}"
@@ -1087,7 +1089,7 @@ class GUIBackend:
             self.refresh_config()
         return success
 
-    def logout(self, ip: Optional[str] = None) -> bool:
+    def logout(self, ip: Optional[str] = None) -> str:
         """
         Logout from gateway.
         从网关注销。
@@ -1102,9 +1104,18 @@ class GUIBackend:
         if client is None:
             return False
         try:
-            return client.logout()
-        except Exception:
-            return False
+            if client.logout():
+                return "success"
+                # for _ in range(20):
+                #     _, is_online, _ = client.is_connected()
+                #     if not is_online:
+                #         return "success"
+                #     time.sleep(0.25)
+                # return "timeout"
+            else:
+                return "failed"
+        except Exception as e:
+            return str(e)
 
     def get_online_data(self, ip: Optional[str] = None,
                         hope: Optional[bool] = None) -> Tuple[bool, bool, Dict]:
@@ -1131,7 +1142,7 @@ class GUIBackend:
                 is_available, is_online, data = client.is_connected()
                 if hope is None or is_online == hope:
                     break
-                time.sleep(0.2)
+                time.sleep(0.25)
             return is_available, is_online, data
         except Exception:
             return False, False, {}
@@ -1175,8 +1186,8 @@ class MainWindow:
         self.window = webview.create_window(
             "校园网登陆器",
             os.path.join(WebRoot, "index.html"),
-            width=400,
-            height=355,
+            width=410,
+            height=360,
             resizable=False,
             frameless=True,
             easy_drag=False,
@@ -1314,7 +1325,7 @@ class MainWindow:
 
                     # Original logical size used when creating the window
                     # 创建窗口时使用的原始逻辑大小
-                    logical_w, logical_h = 400, 355
+                    logical_w, logical_h = 410, 360
                     new_w = int(logical_w * scale)
                     new_h = int(logical_h * scale)
 

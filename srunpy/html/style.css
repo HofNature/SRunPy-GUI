@@ -226,20 +226,62 @@ div#minimize-button {
     margin: 0 7px;
 
 }
+
 div#close-button:hover,
 div#minimize-button:hover {
     background-color: #e6e6e6;
 }
+
 div#close-button,
 div#minimize-button {
     line-height: 32px;
     text-align: center;
     font-size: 32px;
     font-weight: 200;
+    display: flex;
+    align-items: center;
 }
 
 div#close-button {
     margin-right: 7px;
+}
+
+div.minimize-icon {
+    height: 0;
+    width: 10px;
+    border: 1px solid #555;
+    margin: auto;
+}
+
+div.close-icon {
+    height: 16px;
+    width: 16px;
+    margin: auto;
+    position: relative;
+}
+
+div.close-icon::before,
+div.close-icon::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 0px;
+    /* 线条宽度 */
+    border: 1px solid #555;
+    height: 100%;
+    /* 线条高度 */
+    
+    /* 线条颜色 */
+    transform-origin: center;
+}
+
+div.close-icon::before {
+    transform: translateX(-50%) rotate(45deg);
+}
+
+div.close-icon::after {
+    transform: translateX(-50%) rotate(-45deg);
 }
 
 .title-bar-buttons {

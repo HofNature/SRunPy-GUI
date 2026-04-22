@@ -40,7 +40,7 @@ function ipFromToken(token) {
     return token === DEFAULT_IP_TOKEN ? null : token;
 }
 
-function updateInfo(hope) {
+function updateInfo(hope, after) {
     let callback = (e) => {
         is_available = e[0];
         if (!is_available) {
@@ -63,6 +63,7 @@ function updateInfo(hope) {
             document.getElementById('balance-last').innerText = online_data.user_balance + '元';
         }
         load_data();
+        if (after) after();
     }
     const ipParam = active_ip === null ? null : active_ip;
     const hopeParam = typeof hope === 'undefined' ? null : hope;
@@ -259,15 +260,18 @@ function login() {
         }
         else {
             window.pywebview.api.logout(active_ip === null ? null : active_ip).then((e) => {
-                if (e) {
+                let unlock = () => {document.getElementsByClassName('login-button')[0].disabled = false;}
+                if (e=="success") {
                     window.pywebview.api.set_auto_login(false).then((e) => {
-                        updateInfo(false);
+                        updateInfo(false, unlock);
                     });
                 }
                 else {
-                    showAlert("注销失败！");
+                    if (e == "failed") showAlert("注销失败！");
+                    else if (e == "timeout") showAlert("注销超时！");
+                    else showAlert(`内部错误：${e}`);
+                    unlock();
                 }
-                document.getElementsByClassName('login-button')[0].disabled = false;
             });
         }
     });

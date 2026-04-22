@@ -10,3 +10,5 @@ srun_client.exe
 /msixpackage
 *.pyc
 /srunpy.egg-info
+.vscode/
+origin

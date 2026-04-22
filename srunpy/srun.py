@@ -558,8 +558,34 @@ class Srun_Py:
         srun_portal_res = srun_portal_res.text
         data = json.loads(srun_portal_res[srun_portal_res.find('(') + 1:-1])
         return data.get('error') == 'ok'
-
+    
     def logout(self) -> bool:
+        is_available, is_online, _ = self.is_connected()
+        if not is_available or not is_online:
+            raise Exception('You are not online or the network is not available!')
+        ip, username = self.init_getip()
+        params = {
+            "action": "logout",
+            "username": username,
+            "ip": ip,
+            "ac_id": self.ac_id
+        }
+        try:
+            res = self.session.get(
+                self.srun_portal_api, params=params,
+                headers=self.header
+            ).text
+        except Exception:
+            try:
+                res = self.session.get(
+                    self.srun_portal_api_ip, params=params,
+                    headers=self.header, verify=False
+                ).text
+            except Exception:
+                res =  self.logout_classic()
+        return res in ['logout_ok','ok']
+
+    def logout_classic(self) -> str:
         """
         Logout from the gateway.
         从网关注销。
@@ -571,9 +597,6 @@ class Srun_Py:
             Exception: If not online or network not available /
                       如果未在线或网络不可用
         """
-        is_available, is_online, _ = self.is_connected()
-        if not is_available or not is_online:
-            raise Exception('You are not online or the network is not available!')
         ip, username = self.init_getip()
         t = int(time.time() * 1000)
         sign = get_sha1(str(t) + username + ip + '0' + str(t))
@@ -608,5 +631,5 @@ class Srun_Py:
                         verify=False
                     )
         user_dm_res = user_dm_res.text
-        return user_dm_res == 'logout_ok'
+        return user_dm_res
 
