@@ -16,14 +16,22 @@
 
 ### 使用说明
 
-**方法一:** 通过 `pip` 安装 `srunpy` 并运行 `srunpy`  (推荐)  
+**方法一:** 通过 `uv` 以工具模式安装 `srunpy`  (推荐)  
 
 ```sh
-# 需要先安装Python 3.7~3.12
+uv tool install srunpy -p 3.13
+uv run srunpy
+```
+初次启动时会自动创建桌面快捷方式，之后可以直接双击桌面快捷方式启动程序。
+
+
+**方法二:** 通过 `pip` 安装 `srunpy` 并运行 `srunpy` 
+
+```sh
+# 需要先安装Python 3.7~3.13
 pip install srunpy
 srunpy
 ```
-初次启动时会自动创建桌面快捷方式，之后可以直接双击桌面快捷方式启动程序。
 由于深澜网关不提供登录Token，因此本程序需要保存您的账号密码才能工作。您的账户密码将会被保存在本地的配置文件中，除用于登录外不会被其他用途使用。
 本程序在保存您的账号密码时会使用AES加密，但默认AES密钥可以在本开源项目中找到，为确保安全，您可以通过如下命令重新编译本程序：
 
@@ -41,10 +49,12 @@ srunpy-build # 可通过--path指定输出路径，默认在您的桌面上
 pip install srunpy[qt]
 srunpy --qt
 ```
-**方法二:** 前往 [Github Release](https://github.com/HofNature/SRunPy-GUI/releases) 下载SRunClient.zip,解压后直接运行  
+**方法三:** 前往 [Github Release](https://github.com/HofNature/SRunPy-GUI/releases) 下载SRunClient.zip,解压后直接运行  
 此方法无需安装Python环境，但无法使用命令行操作，且由于应用程序未签名，可能会被Windows Defender或其他杀毒软件误报。
+> **注意**: 
+自1.0.9版本起，不再提供编译好的可执行文件下载，如有需要可自行编译或使用pip安装。
 
-**方法三:** 从Github Clone 本项目，然后安装  
+**方法四:** 从Github Clone 本项目，然后安装  
 
 ```sh
 git clone https://github.com/HofNature/SRunPy-GUI.git
@@ -53,7 +63,7 @@ pip install .
 srunpy
 ```
 
-**方法四:** Clone 本项目，使用 `environment.yaml` 创建 Anaconda 环境，然后运行 `srun_client.py`  
+**方法五:** Clone 本项目，使用 `environment.yaml` 创建 Anaconda 环境，然后运行 `srun_client.py`  
 
 ```sh
 git clone https://github.com/HofNature/SRunPy-GUI.git
@@ -137,14 +147,21 @@ srunpy-cli --login --username <你的用户名> --passwd <你的密码> --local-
 
 ### Usage Instructions
 
-**Method 1:** Install `srunpy` via `pip` and run `srunpy` (Recommended)
+**Method 1:** Install `srunpy` with `uv` in tool mode (Recommended)
 
 ```sh
-# Requires Python 3.7~3.12
+uv tool install srunpy -p 3.13
+uv run srunpy
+```
+The first time you start, a desktop shortcut will be created automatically. You can then start the program by double-clicking the desktop shortcut.
+
+**Method 2:** Install `srunpy` via `pip` and run `srunpy`
+
+```sh
+# Requires Python 3.7~3.13
 pip install srunpy
 srunpy
 ```
-The first time you start, a desktop shortcut will be created automatically. You can then start the program by double-clicking the desktop shortcut.
 Since the Srun gateway does not provide a login token, this program needs to save your account and password to work. Your account and password will be saved in a local configuration file and will not be used for any other purpose.
 This program uses AES encryption when saving your account and password, but the default AES key can be found in this open-source project. To ensure security, you can recompile this program with the following command:
 
@@ -162,10 +179,12 @@ This program uses Edge WebView2 as the browser engine by default. It can be chan
 pip install srunpy[qt]
 srunpy --qt
 ```
-**Method 2:** Go to [Github Release](https://github.com/HofNature/SRunPy-GUI/releases) to download SRunClient.zip, unzip and run directly  
+**Method 3:** Go to [Github Release](https://github.com/HofNature/SRunPy-GUI/releases) to download SRunClient.zip, unzip and run directly  
 This method does not require a Python environment but cannot use command line operations. Also, since the application is unsigned, it may be falsely flagged by Windows Defender or other antivirus software.
+> **Note**:
+Since version 1.0.9, precompiled executable files are no longer provided for download. If needed, you can compile it yourself or use pip to install.
 
-**Method 3:** Clone this project from Github and then install
+**Method 4:** Clone this project from Github and then install
 
 ```sh
 git clone https://github.com/HofNature/SRunPy-GUI.git
@@ -174,7 +193,7 @@ pip install .
 srunpy
 ```
 
-**Method 4:** Clone this project, create an Anaconda environment using `environment.yaml`, and then run `srun_client.py`
+**Method 5:** Clone this project, create an Anaconda environment using `environment.yaml`, and then run `srun_client.py`
 
 ```sh
 git clone https://github.com/HofNature/SRunPy-GUI.git

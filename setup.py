@@ -1,19 +1,22 @@
-from setuptools import setup, find_packages
-
 from os import path
+from setuptools import setup, find_packages
+from srunpy import __version__  as srunpy_version
+
 this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 long_description = long_description.replace("./Show.png","https://github.com/HofNature/SRunPy-GUI/raw/main/Show.png")
+
 setup(
     name="srunpy",
-    version="1.0.9.0",
+    version=srunpy_version,
     author="HofNature",
     description="适用于深澜网关的校园网第三方登录器",
     long_description=long_description,
     long_description_content_type='text/markdown',    
     packages=find_packages(),
     install_requires=["requests",
+                      "setuptools<81", "pip",
                       "pystray;platform_system=='Windows'",
                       "pywebview;platform_system=='Windows'",
                       "pywin32;platform_system=='Windows'",
