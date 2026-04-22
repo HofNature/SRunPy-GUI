@@ -1138,11 +1138,13 @@ class GUIBackend:
             is_available = False
             is_online = False
             data = {}
+            if hope is not None:
+                time.sleep(0.25)
             for _ in range(5):
                 is_available, is_online, data = client.is_connected()
                 if hope is None or is_online == hope:
                     break
-                time.sleep(0.25)
+                time.sleep(0.6)
             return is_available, is_online, data
         except Exception:
             return False, False, {}

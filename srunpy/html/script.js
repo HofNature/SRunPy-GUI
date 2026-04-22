@@ -104,8 +104,8 @@ function load_data() {
             do_Update();
             window.pywebview.api.do_update(false);
         }
-        srun_host=e[6];
-        srun_self=e[7];
+        srun_host = e[6];
+        srun_self = e[7];
         active_ip = e[8] === null ? null : e[8];
         selected_ips = Array.isArray(e[9]) ? e[9].slice() : [];
         renderIpSelector();
@@ -165,14 +165,14 @@ function handleIpSelectionChange(event) {
 
 function do_Update() {
     if (hasUpdate) {
-        showConfirmAlert('检查到更新，立即下载吗？', () => { 
+        showConfirmAlert('检查到更新，立即下载吗？', () => {
             if (!window.pywebview.api.do_update(true)) {
                 showAlert("更新失败！请手动下载最新版本。");
             }
         });
     }
     else {
-        showConfirmAlert('深澜网关第三方客户端',()=>{window.pywebview.api.webbrowser_open("https://github.com/HofNature/SRunPy-GUI")}, "icons/github.png");
+        showConfirmAlert('深澜网关第三方客户端', () => { window.pywebview.api.webbrowser_open("https://github.com/HofNature/SRunPy-GUI") }, "icons/github.png");
     }
 }
 function set_auto_login() {
@@ -182,9 +182,9 @@ function set_auto_login() {
     }
     else {
         document.getElementById('auto-login').setAttribute('data-state', 'selected');
-    window.pywebview.api.get_online_data(active_ip === null ? null : active_ip).then((e) => {
+        window.pywebview.api.get_online_data(active_ip === null ? null : active_ip).then((e) => {
             is_online = e[1];
-            if (is_online){
+            if (is_online) {
                 window.pywebview.api.set_auto_login(true).then((e) => {
                     if (!e) {
                         showAlert("请至少用本工具登录一次！");
@@ -192,7 +192,7 @@ function set_auto_login() {
                     }
                 });
             }
-            else{
+            else {
                 showAlert("仅限登录状态下启用！");
                 document.getElementById('auto-login').setAttribute('data-state', 'unselected');
             }
@@ -259,26 +259,26 @@ function login() {
             });
         }
         else {
-            window.pywebview.api.logout(active_ip === null ? null : active_ip).then((e) => {
-                let unlock = () => {document.getElementsByClassName('login-button')[0].disabled = false;}
-                if (e=="success") {
-                    window.pywebview.api.set_auto_login(false).then((e) => {
+            window.pywebview.api.set_auto_login(false).then((e) => {
+                window.pywebview.api.logout(active_ip === null ? null : active_ip).then((e) => {
+                    let unlock = () => { document.getElementsByClassName('login-button')[0].disabled = false; }
+                    if (e == "success") {
                         updateInfo(false, unlock);
-                    });
-                }
-                else {
-                    if (e == "failed") showAlert("注销失败！");
-                    else if (e == "timeout") showAlert("注销超时！");
-                    else showAlert(`内部错误：${e}`);
-                    unlock();
-                }
+                    }
+                    else {
+                        if (e == "failed") showAlert("注销失败！");
+                        else if (e == "timeout") showAlert("注销超时！");
+                        else showAlert(`内部错误：${e}`);
+                        unlock();
+                    }
+                });
             });
         }
     });
 }
 
-function openSettings(){
-    window.pywebview.api.get_ip_settings().then((settings)=>{
+function openSettings() {
+    window.pywebview.api.get_ip_settings().then((settings) => {
         resetSettingsWizardState();
         settingsWizard.gateway = settings.gateway || '';
         settingsWizard.selfService = settings.self_service || '';
@@ -317,26 +317,26 @@ function openSettings(){
         }
         const mask = document.getElementById('settings-mask');
         mask.style.display = 'block';
-        setTimeout(()=>{mask.style.opacity = '1';},20);
+        setTimeout(() => { mask.style.opacity = '1'; }, 20);
     });
 }
 
-function closeSettings(){
+function closeSettings() {
     const mask = document.getElementById('settings-mask');
     if (!mask) {
         return;
     }
     if (mask.style.opacity !== '0') {
         mask.style.opacity = '0';
-        setTimeout(()=>{
+        setTimeout(() => {
             if (mask.style.opacity === '0') {
                 mask.style.display = 'none';
             }
-        },300);
+        }, 300);
     }
 }
 
-function populateSettingsIpList(results){
+function populateSettingsIpList(results) {
     const ipList = document.getElementById('settings-ip-list');
     if (!ipList) {
         return;
@@ -349,7 +349,7 @@ function populateSettingsIpList(results){
         ipList.appendChild(empty);
         return;
     }
-    results.forEach((entry)=>{
+    results.forEach((entry) => {
         const token = tokenForIp(entry.ip);
         const row = document.createElement('div');
         row.className = 'settings-ip-item';
@@ -391,12 +391,12 @@ function populateSettingsIpList(results){
         if (token === settingsWizard.activeToken) {
             radio.checked = true;
         }
-        radio.addEventListener('change',()=>{
+        radio.addEventListener('change', () => {
             settingsWizard.activeToken = token;
             settingsWizard.selectedTokens.add(token);
             checkbox.checked = true;
         });
-        checkbox.addEventListener('change',()=>{
+        checkbox.addEventListener('change', () => {
             if (checkbox.checked) {
                 settingsWizard.selectedTokens.add(token);
                 if (settingsWizard.activeToken === DEFAULT_IP_TOKEN && token !== DEFAULT_IP_TOKEN) {
@@ -408,7 +408,7 @@ function populateSettingsIpList(results){
                 settingsWizard.selectedTokens.delete(token);
                 if (settingsWizard.activeToken === token) {
                     settingsWizard.activeToken = DEFAULT_IP_TOKEN;
-                    const defaultRadio = document.querySelector('input[name="settings-active-ip"][value="'+DEFAULT_IP_TOKEN+'"]');
+                    const defaultRadio = document.querySelector('input[name="settings-active-ip"][value="' + DEFAULT_IP_TOKEN + '"]');
                     if (defaultRadio) {
                         defaultRadio.checked = true;
                     }
@@ -428,7 +428,7 @@ function populateSettingsIpList(results){
     updateSettingsFooterNote();
 }
 
-function saveSettings(){
+function saveSettings() {
     const selectedList = Array.from(settingsWizard.selectedTokens);
     if (selectedList.length === 0) {
         settingsWizard.selectedTokens.add(DEFAULT_IP_TOKEN);
@@ -443,10 +443,10 @@ function saveSettings(){
         selected: Array.from(settingsWizard.selectedTokens).map(ipFromToken),
         active: ipFromToken(activeToken)
     };
-    window.pywebview.api.update_ip_settings(payload).then((ok)=>{
+    window.pywebview.api.update_ip_settings(payload).then((ok) => {
         if (ok) {
             closeSettings();
-            setTimeout(()=>{showAlert("设置成功！");},320);
+            setTimeout(() => { showAlert("设置成功！"); }, 320);
             updateInfo();
         }
         else {
@@ -455,7 +455,7 @@ function saveSettings(){
     });
 }
 
-function refreshSettingsIps(){
+function refreshSettingsIps() {
     if (settingsWizard.step !== 'ip') {
         return;
     }
@@ -469,7 +469,7 @@ function refreshSettingsIps(){
         refreshButton.disabled = true;
     }
     document.getElementById('settings-probe-status').innerText = '正在重新检查...';
-    window.pywebview.api.probe_gateway_ips(settingsWizard.gateway, settingsWizard.selfService).then((result)=>{
+    window.pywebview.api.probe_gateway_ips(settingsWizard.gateway, settingsWizard.selfService).then((result) => {
         if (inlineButton) {
             // inlineButton.disabled = false;
             inlineButton.style.display = "unset";
@@ -490,7 +490,7 @@ function refreshSettingsIps(){
         document.getElementById('settings-probe-status').innerText = `共检测到 ${settingsWizard.results.length} 个IP，其中 ${settingsWizard.reachableCount} 个可访问。`;
         renderProbeResults();
         populateSettingsIpList(settingsWizard.results);
-    }).catch((error)=>{
+    }).catch((error) => {
         if (inlineButton) {
             // inlineButton.disabled = false;
             inlineButton.style.display = "unset";
@@ -506,7 +506,7 @@ function refreshSettingsIps(){
     });
 }
 
-function startSelfService(){
+function startSelfService() {
     window.pywebview.api.start_self_service(active_ip === null ? null : active_ip);
 }
 
@@ -520,7 +520,7 @@ function showAlert(text, icon) {
     showConfirmAlert(text, null);
 }
 
-function showConfirmAlert(text, callback,icon) {
+function showConfirmAlert(text, callback, icon) {
     let ele = document.getElementsByClassName("alert-cancle");
     if (icon) {
         document.querySelector("#alert-mask img").src = icon;
@@ -562,10 +562,10 @@ function closeAlert() {
     }
 }
 
-function showInput(text,callback,inputText="",ensureText=true) {
+function showInput(text, callback, inputText = "", ensureText = true) {
     let mask = document.getElementById("input-mask");
     let input = document.getElementById("input-input");
-    input.value=inputText;
+    input.value = inputText;
     if (ensureText) {
         document.getElementById("input-text").children[0].innerText = text;
     }
@@ -595,7 +595,7 @@ function closeInput() {
     resetSettingsWizardState();
 }
 
-function proceedSettingsStep(){
+function proceedSettingsStep() {
     if (settingsWizard.step === 'gateway') {
         const gatewayInput = document.getElementById('settings-gateway').value.trim();
         const selfInput = document.getElementById('settings-self-service').value.trim();
@@ -609,7 +609,7 @@ function proceedSettingsStep(){
         // document.getElementById('settings-probe-results').innerHTML = '';
         document.getElementById('settings-probe-results').style.display = 'none';
         document.getElementById('settings-action-next').disabled = true;
-        window.pywebview.api.probe_gateway_ips(gatewayInput, selfInput).then((result)=>{
+        window.pywebview.api.probe_gateway_ips(gatewayInput, selfInput).then((result) => {
             document.getElementById('settings-action-next').disabled = false;
             if (!result.ok) {
                 document.getElementById('settings-probe-status').innerText = result.error || '网关检查失败';
@@ -629,23 +629,23 @@ function proceedSettingsStep(){
     }
 }
 
-function initializeSelectionFromProbe(result){
+function initializeSelectionFromProbe(result) {
     const availableTokens = new Set();
     if (Array.isArray(result.results)) {
-        result.results.forEach((item)=>{
+        result.results.forEach((item) => {
             availableTokens.add(tokenForIp(item.ip));
         });
     }
     const nextSelected = new Set();
     if (settingsWizard.selectedTokens instanceof Set && settingsWizard.selectedTokens.size > 0) {
-        settingsWizard.selectedTokens.forEach((token)=>{
+        settingsWizard.selectedTokens.forEach((token) => {
             if (availableTokens.has(token)) {
                 nextSelected.add(token);
             }
         });
     }
     if (nextSelected.size === 0 && Array.isArray(result.results)) {
-        result.results.forEach((item)=>{
+        result.results.forEach((item) => {
             if (item.reachable) {
                 nextSelected.add(tokenForIp(item.ip));
             }
@@ -663,7 +663,7 @@ function initializeSelectionFromProbe(result){
     }
 }
 
-function renderProbeResults(){
+function renderProbeResults() {
     const container = document.getElementById('settings-probe-results');
     document.getElementById('settings-probe-results').style.display = 'auto';
     if (!container) {
@@ -677,7 +677,7 @@ function renderProbeResults(){
         container.appendChild(empty);
         return;
     }
-    settingsWizard.results.forEach((entry)=>{
+    settingsWizard.results.forEach((entry) => {
         const row = document.createElement('div');
         row.className = 'settings-probe-item';
         const label = entry.label || (entry.ip === null ? '默认路由' : String(entry.ip));
@@ -695,7 +695,7 @@ function renderProbeResults(){
     });
 }
 
-function renderIpSelectionStep(){
+function renderIpSelectionStep() {
     settingsWizard.step = 'ip';
     document.getElementById('settings-step-gateway').classList.remove('active');
     document.getElementById('settings-step-ip').classList.add('active');
@@ -708,7 +708,7 @@ function renderIpSelectionStep(){
     populateSettingsIpList(settingsWizard.results);
 }
 
-function goBackToGatewayStep(){
+function goBackToGatewayStep() {
     if (settingsWizard.step !== 'ip') {
         return;
     }
@@ -722,7 +722,7 @@ function goBackToGatewayStep(){
     document.getElementById('settings-action-next').disabled = false;
 }
 
-function updateSettingsFooterNote(){
+function updateSettingsFooterNote() {
     const note = document.getElementById('settings-ip-note');
     if (!note) {
         return;

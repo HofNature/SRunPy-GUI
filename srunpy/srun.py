@@ -479,6 +479,35 @@ class Srun_Py:
         chksum = get_sha1(self.get_chksum(username, token, hmd5, ip, i))
         return i, hmd5, chksum
 
+    def _parse_portal_payload(self, raw: str) -> Dict:
+        """
+        Parse raw portal response (JSON or JSONP) into a dictionary.
+        将门户原始响应（JSON 或 JSONP）解析为字典。
+
+        Args / 参数:
+            raw: Raw response text / 原始响应文本
+
+        Returns / 返回:
+            Parsed payload dictionary / 解析后的载荷字典
+        """
+        text = (raw or '').strip()
+        if not text:
+            return {}
+        try:
+            return json.loads(text)
+        except Exception:
+            pass
+
+        start = text.find('(')
+        end = text.rfind(')')
+        if start != -1 and end > start:
+            body = text[start + 1:end].strip()
+            try:
+                return json.loads(body)
+            except Exception:
+                return {}
+        return {}
+
     def update_acid(self) -> None:
         """
         Update AC ID from gateway redirect URL.
@@ -563,6 +592,14 @@ class Srun_Py:
         is_available, is_online, _ = self.is_connected()
         if not is_available or not is_online:
             raise Exception('You are not online or the network is not available!')
+
+        # Align with login flow: refresh AC ID before portal logout.
+        # 与登录流程对齐：注销前刷新 AC ID。
+        try:
+            self.update_acid()
+        except Exception:
+            pass
+
         ip, username = self.init_getip()
         params = {
             "action": "logout",
@@ -570,20 +607,41 @@ class Srun_Py:
             "ip": ip,
             "ac_id": self.ac_id
         }
+        raw_res = ''
         try:
-            res = self.session.get(
+            raw_res = self.session.get(
                 self.srun_portal_api, params=params,
                 headers=self.header
             ).text
         except Exception:
             try:
-                res = self.session.get(
+                raw_res = self.session.get(
                     self.srun_portal_api_ip, params=params,
                     headers=self.header, verify=False
                 ).text
             except Exception:
-                res =  self.logout_classic()
-        return res in ['logout_ok','ok']
+                raw_res = ''
+
+        payload = self._parse_portal_payload(raw_res)
+        error_code = str(payload.get('error', '')).lower()
+        res_code = str(payload.get('res', '')).lower()
+        msg_code = str(payload.get('error_msg', '')).lower()
+
+        # Compatible with different gateway return shapes.
+        # 兼容不同网关返回结构。
+        if (
+            error_code in {'ok', 'logout_ok'} or
+            res_code in {'ok', 'logout_ok'} or
+            msg_code in {'ok', 'logout_ok'} or
+            raw_res.strip().lower() in {'ok', 'logout_ok'}
+        ):
+            return True
+
+        # Fallback to DM-style logout when portal logout did not clearly succeed.
+        # 当 portal 注销未明确成功时，回退到 DM 风格注销。
+        dm_res = self.logout_classic()
+        dm_text = dm_res.strip().lower()
+        return dm_text in {'ok', 'logout_ok', 'success', '1', 'true'}
 
     def logout_classic(self) -> str:
         """
