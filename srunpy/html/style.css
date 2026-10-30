@@ -3,7 +3,7 @@
 @font-face {
     font-family: "MiSans";
     src:
-        url("/MiSans-Medium.ttf") format("ttf");
+        url("./MiSans-Medium.ttf") format("truetype");
 }
 
 * {
@@ -23,6 +23,7 @@ body {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    min-width: 0;
 }
 
 .main-container-h {
@@ -183,6 +184,7 @@ input#input-input {
 
 .ip-selector-bar select {
     flex-grow: 1;
+    min-width: 0;
     height: 30px;
     border-radius: 100px;
     border: 2px solid #0003;
@@ -208,11 +210,13 @@ body {
 
 .app-container {
     flex-grow: 1;
+    min-height: 0;
     position: relative;
 }
 
 .title-bar {
     height: 46px;
+    flex-shrink: 0;
     display: flex;
     flex-direction: row;
     align-items: stretch;
@@ -671,6 +675,7 @@ input {
     border: 2px solid #0003;
     box-shadow: 1px 1px 5px 1px #0001;
     flex-grow: 1;
+    min-width: 0;
 }
 
 .input-text {

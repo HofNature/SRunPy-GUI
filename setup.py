@@ -18,7 +18,7 @@ setup(
     install_requires=["requests",
                       "setuptools<81", "pip",
                       "pystray;platform_system=='Windows'",
-                      "pywebview;platform_system=='Windows'",
+                      "pywebview>=6.2.1;platform_system=='Windows'",
                       "pywin32;platform_system=='Windows'",
                       "win10toast;platform_system=='Windows'",
                       "pycryptodome;platform_system=='Windows'"],

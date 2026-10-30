@@ -6,16 +6,13 @@ This module provides the Windows graphical interface for SRunPy.
 """
 
 import base64
-import ctypes
 import json
 import os
-import platform
 import socket
 import subprocess
 import sys
 import threading
 import time
-import uuid
 import webbrowser
 from binascii import a2b_hex, b2a_hex
 from typing import Any, Dict, List, Optional, Tuple
@@ -26,7 +23,6 @@ import webview
 import win32api
 import win32com.client as client
 import win32con
-import win32gui
 from Crypto.Cipher import AES
 from PIL import Image
 from win10toast import ToastNotifier
@@ -423,6 +419,10 @@ class GUIBackend:
                 print("无法导入Qt库，请使用pip install srumpy[qt]安装")
                 print("Failed to import Qt library, please use pip install srumpy[qt] to install")
                 use_qt = False
+
+        if not use_qt:
+            from srunpy.windows_frame import enable_per_monitor_dpi
+            enable_per_monitor_dpi()
 
         self.aes_key = aes_key
         self.qt_backend = use_qt
@@ -1185,75 +1185,32 @@ class MainWindow:
             'global.quitConfirmation': '确定关闭?',
         }
 
+        self._native_frame = None
         self.window = webview.create_window(
             "校园网登陆器",
             os.path.join(WebRoot, "index.html"),
             width=410,
             height=360,
             resizable=False,
-            frameless=True,
+            frameless=self.srunpy.qt_backend,
             easy_drag=False,
         )
-        
-        self.hwnd = None
-
-        def _animate_and_action(action: str) -> None:
-            """
-            Animate the frameless window using AnimateWindow if hwnd is available,
-            then perform the requested action ('close' or 'minimize').
-            """
-            hwnd = getattr(self, 'hwnd', None)
-            # Fallback to original behavior if no hwnd
-            if not hwnd:
-                if action == 'close':
-                    try:
-                        self.window.destroy()
-                    except Exception:
-                        pass
-                else:
-                    try:
-                        self.window.minimize()
-                    except Exception:
-                        pass
-                return
-
-            try:
-                # AnimateWindow flags
-                AW_HIDE = 0x00010000
-                AW_CENTER = 0x00000010
-                AW_BLEND = 0x00080000
-
-                
-
-                animate = getattr(ctypes.windll.user32, "AnimateWindow", None)
-                if animate is not None:
-                    if action == 'close':
-                        flags = AW_HIDE | AW_CENTER | AW_BLEND
-                        # Slide down when closing (works well for frameless)
-                        animate(hwnd, 300, flags)  # AW_VER_POSITIVE   
-                    else:
-                        # Use a short fade-out/slide when hiding (works well for frameless)
-                        flags = AW_HIDE | AW_BLEND
-                        # 200 ms feels natural (Windows typical animation length)
-                        animate(hwnd, 200, flags)
-            except Exception:
-                # If animation fails, ignore and continue to the action
-                pass
-
-            # Perform the actual action
-            try:
-                if action == 'close':
-                    self.window.destroy()
-                else:
-                    self.window.minimize()
-            except Exception:
-                pass    
 
         def close_window() -> None:
-            _animate_and_action('close')
+            self.window.destroy()
 
         def minimize_window() -> None:
-            _animate_and_action('minimize')
+            if self._native_frame:
+                self._native_frame.minimize()
+            else:
+                self.window.minimize()
+
+        if not self.srunpy.qt_backend:
+            def prepare_native_frame() -> None:
+                from srunpy.windows_frame import WindowsFrame
+                self._native_frame = WindowsFrame(self.window)
+
+            self.window.events.before_show += prepare_native_frame
 
         # Expose backend methods to JavaScript
         # 向 JavaScript 暴露后端方法
@@ -1279,115 +1236,6 @@ class MainWindow:
         )
 
         def after_window_created() -> None:
-            """
-            Callback after window is created for DPI scaling.
-            窗口创建后的回调，用于 DPI 缩放。
-            """
-            if platform.system() == "Windows":
-                # Ensure process is DPI aware
-                # 确保进程支持 DPI
-                try:
-                    ctypes.windll.user32.SetProcessDPIAware()
-                except Exception:
-                    pass
-
-                # Get window handle and apply DPI scaling
-                # 获取窗口句柄并应用 DPI 缩放
-                hwnd = None
-                random_title = uuid.uuid4().hex
-                self.window.set_title(random_title)
-                for _ in range(20):
-                    hwnd = win32gui.FindWindow(None, random_title)
-                    if hwnd:
-                        break
-                    time.sleep(0.05)
-                self.window.set_title("校园网登陆器")
-
-                if hwnd:
-                    self.hwnd = hwnd
-                    # Get DPI for the window
-                    # 获取窗口的 DPI
-                    try:
-                        user32 = ctypes.windll.user32
-                        get_dpi = getattr(user32, "GetDpiForWindow", None)
-                        if get_dpi:
-                            dpi = get_dpi(hwnd)
-                        else:
-                            # Fallback: get device DPI
-                            # 回退：获取设备 DPI
-                            gdi32 = ctypes.windll.gdi32
-                            hdc = user32.GetDC(0)
-                            LOGPIXELSX = 88
-                            dpi = gdi32.GetDeviceCaps(hdc, LOGPIXELSX)
-                            user32.ReleaseDC(0, hdc)
-                    except Exception:
-                        dpi = 96
-
-                    scale = float(dpi) / 96.0
-
-                    # Original logical size used when creating the window
-                    # 创建窗口时使用的原始逻辑大小
-                    logical_w, logical_h = 410, 360
-                    new_w = int(logical_w * scale)
-                    new_h = int(logical_h * scale)
-
-                    # Center the window on the primary screen and resize
-                    # 将窗口置于主屏幕中央并调整大小
-                    try:
-                        screen_w = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
-                        screen_h = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
-                        left = int((screen_w - new_w) / 2)
-                        top = int((screen_h - new_h) / 2)
-                        win32gui.SetWindowPos(
-                            hwnd, None, left, top, new_w, new_h,
-                            win32con.SWP_NOZORDER
-                        )
-                    except Exception:
-                        # Fallback: keep current position, only resize
-                        left, top, right, bottom = win32gui.GetWindowRect(hwnd)
-                        try:
-                            win32gui.SetWindowPos(
-                                hwnd, None, left, top, new_w, new_h,
-                                win32con.SWP_NOZORDER
-                            )
-                        except Exception:
-                            pass
-
-                    try:
-                        icon_file = os.path.join(WebRoot, 'icons', 'logo.ico')
-                        if os.path.exists(icon_file):
-                            # Try to load icon sizes for big and small icons
-                            large = win32gui.LoadImage(0, icon_file, win32con.IMAGE_ICON, 32, 32, win32con.LR_LOADFROMFILE)
-                            small = win32gui.LoadImage(0, icon_file, win32con.IMAGE_ICON, 16, 16, win32con.LR_LOADFROMFILE)
-                            if large:
-                                win32gui.SendMessage(hwnd, win32con.WM_SETICON, win32con.ICON_BIG, large)
-                            if small:
-                                win32gui.SendMessage(hwnd, win32con.WM_SETICON, win32con.ICON_SMALL, small)
-                    except Exception as e:
-                        pass
-
-                    # try:
-                    #     class MARGINS(ctypes.Structure):
-                    #         _fields_ = [
-                    #             ("cxLeftWidth", ctypes.c_int),
-                    #             ("cxRightWidth", ctypes.c_int),
-                    #             ("cyTopHeight", ctypes.c_int),
-                    #             ("cyBottomHeight", ctypes.c_int),
-                    #         ]
-
-                    #     # 尝试通过 DWM 将窗口框架延伸到客户区顶部，模拟标题栏高度
-                    #     try:
-                    #         sys_cycaption = win32api.GetSystemMetrics(win32con.SM_CYCAPTION)
-                    #         margins = MARGINS(0, 0, int(sys_cycaption), 0)
-                    #         dwm = getattr(ctypes.windll, "dwmapi", None)
-                    #         if dwm is not None:
-                    #             dwm.DwmExtendFrameIntoClientArea(hwnd, ctypes.byref(margins))
-                    #     except Exception:
-                    #         # 若不支持 DWM 或调用失败，静默忽略
-                    #         pass
-                    # except Exception as e:
-                    #     pass
-
             self.window.evaluate_js('updateInfo()')
 
         if self.srunpy.qt_backend:
@@ -1402,6 +1250,7 @@ class MainWindow:
             webview.start(
                 after_window_created,
                 localization=localization,
-                debug=False
+                debug=False,
+                icon=os.path.join(WebRoot, 'icons', 'logo.ico')
             )
 
