@@ -10,7 +10,7 @@ import platform
 from typing import Tuple
 
 # Version information / 版本信息
-PROGRAM_VERSION: Tuple[int, int, int, int] = (1, 0, 9, 2)
+PROGRAM_VERSION: Tuple[int, int, int, int] = (1, 1, 0, 0)
 __version__: str = '.'.join(map(str, PROGRAM_VERSION))
 
 # Import core components / 导入核心组件

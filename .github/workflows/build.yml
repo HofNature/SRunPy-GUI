@@ -21,7 +21,7 @@ jobs:
           pip install build requests "setuptools<81"
 
       - name: Build distribution packages
-        run: python -m build --no-isolation
+        run: python setup.py bdist_wheel sdist
 
       - name: Upload packages
         uses: actions/upload-artifact@v4
