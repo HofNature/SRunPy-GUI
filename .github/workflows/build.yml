@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -22,7 +22,7 @@ jobs:
           pip install build
 
       - name: Build distribution packages
-        run: python -m build
+        run: python -m build --no-isolation
 
       - name: Upload packages
         uses: actions/upload-artifact@v4
@@ -32,7 +32,7 @@ jobs:
 
   publish:
     needs: [build]
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     environment: pypi
     permissions:
       id-token: write
@@ -47,7 +47,7 @@ jobs:
 
   release:
     needs: [build]
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
