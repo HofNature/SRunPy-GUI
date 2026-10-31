@@ -1,2 +1,2 @@
-include srunpy\html\*
-include srunpy\html\icons\*
+include srunpy/html/*
+include srunpy/html/icons/*
