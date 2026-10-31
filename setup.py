@@ -1,8 +1,17 @@
 from os import path
+import re
 from setuptools import setup, find_packages
-from srunpy import __version__  as srunpy_version
 
 this_directory = path.abspath(path.dirname(__file__))
+version_path = path.join(this_directory, "srunpy", "__init__.py")
+with open(version_path, encoding="utf-8") as f:
+    version_content = f.read()
+version_match = re.search(r"PROGRAM_VERSION\s*:\s*Tuple\[int,\s*int,\s*int,\s*int\]\s*=\s*\(([^)]+)\)", version_content)
+if version_match:
+    srunpy_version = ".".join(part.strip() for part in version_match.group(1).split(","))
+else:
+    srunpy_version = re.search(r"__version__\s*:\s*str\s*=\s*['\"]([^'\"]+)['\"]", version_content).group(1)
+
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 long_description = long_description.replace("./Show.png","https://github.com/HofNature/SRunPy-GUI/raw/main/Show.png")
