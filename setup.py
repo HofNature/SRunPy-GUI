@@ -24,7 +24,7 @@ setup(
                       "pycryptodome;platform_system=='Windows'"],
     extras_require={
         'qt': ["pywebview[qt]"],
-        'build': ["pywebview", "nuitka"],
+        'build': ["nuitka"],
     },
     python_requires=">=3.7",#, <3.13",
     url="https://github.com/HofNature/SRunPy-GUI",
